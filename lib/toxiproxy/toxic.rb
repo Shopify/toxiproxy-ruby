@@ -3,11 +3,11 @@ class Toxiproxy
     attr_reader :name, :proxy, :direction
     attr_reader :attrs
 
-    def initialize(proxy:, name:, direction:, attrs: {})
-      @proxy     = proxy
-      @name      = name
-      @direction = direction
-      @attrs     = attrs
+    def initialize(options)
+      @proxy     = options[:proxy]
+      @name      = options[:name]
+      @direction = options[:direction]
+      @attrs     = options[:attrs] || {}
     end
 
     def enabled?

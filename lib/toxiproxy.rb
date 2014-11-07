@@ -16,10 +16,10 @@ class Toxiproxy
 
   attr_reader :listen, :name
 
-  def initialize(upstream:, name:, listen: "localhost:0")
-    @upstream = upstream
-    @listen   = listen
-    @name     = name
+  def initialize(options)
+    @upstream = options[:upstream]
+    @listen   = options[:listen] || "localhost:0"
+    @name     = options[:name]
   end
 
   # Forwardable doesn't support delegating class methods, so we resort to
@@ -51,8 +51,8 @@ class Toxiproxy
   end
 
   # Convenience method to create a proxy.
-  def self.create(**args)
-    self.new(**args).create
+  def self.create(options)
+    self.new(options).create
   end
 
   # Find a single proxy by name.
