@@ -177,7 +177,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     TCPSocket.new(*proxy.listen.split(":".freeze))
   end
 
-  def with_tcpserver(receive: false, &block)
+  def with_tcpserver(receive = false, &block)
     mon = Monitor.new
     cond = mon.new_cond
     port = nil
