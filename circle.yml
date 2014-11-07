@@ -1,3 +1,4 @@
 dependencies:
   override:
+    - bundle install
     - ./bin/start-toxiproxy.sh
