@@ -2,3 +2,6 @@ dependencies:
   override:
     - bundle install
     - ./bin/start-toxiproxy.sh
+test:
+  override:
+    - bundle exec rake test
