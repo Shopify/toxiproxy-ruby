@@ -74,14 +74,14 @@ class Toxiproxy
   def upstream(toxic = nil, attrs = {})
     return @upstream unless toxic
 
-    collection = ToxicCollection.new(self)
+    collection = ToxicCollection.new([self])
     collection.upstream(toxic, attrs)
     collection
   end
 
   # Set a downstream toxic.
   def downstream(toxic, attrs = {})
-    collection = ToxicCollection.new(self)
+    collection = ToxicCollection.new([self])
     collection.downstream(toxic, attrs)
     collection
   end

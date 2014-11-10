@@ -103,8 +103,6 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   end
 
   def test_apply_upstream_toxic
-    $before = Time.now
-
     with_tcpserver(receive: true) do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")
 
@@ -157,6 +155,39 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
         passed = Time.now - before
 
         assert_in_delta passed, 0.200, 0.01
+      end
+    end
+  end
+
+  def test_apply_toxics_to_collection
+    with_tcpserver(receive: true) do |port1|
+      with_tcpserver(receive: true) do |port2|
+        proxy1 = Toxiproxy.create(upstream: "localhost:#{port1}", name: "test_proxy1")
+        proxy2 = Toxiproxy.create(upstream: "localhost:#{port2}", name: "test_proxy2")
+
+        Toxiproxy[/test_proxy/].upstream(:latency, latency: 100).downstream(:latency, latency: 100).apply do
+          before = Time.now
+
+          socket = connect_to_proxy(proxy1)
+          socket.write("omg\n")
+          socket.flush
+          socket.gets
+
+          passed = Time.now - before
+
+          assert_in_delta passed, 0.200, 0.01
+
+          before = Time.now
+
+          socket = connect_to_proxy(proxy2)
+          socket.write("omg\n")
+          socket.flush
+          socket.gets
+
+          passed = Time.now - before
+
+          assert_in_delta passed, 0.200, 0.01
+        end
       end
     end
   end

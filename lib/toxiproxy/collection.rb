@@ -28,10 +28,24 @@ class Toxiproxy
     #
     # Would simulate every Redis server being down for the duration of the
     # block.
-    def down(*args, &block)
+    def down(&block)
       @collection.inject(block) { |nested, proxy|
-        -> { proxy.down(*args, &nested) }
+        -> { proxy.down(&nested) }
       }.call
+    end
+
+    # Set an upstream toxic.
+    def upstream(toxic = nil, attrs = {})
+      toxics = ToxicCollection.new(@collection)
+      toxics.upstream(toxic, attrs)
+      toxics
+    end
+
+    # Set a downstream toxic.
+    def downstream(toxic, attrs = {})
+      toxics = ToxicCollection.new(@collection)
+      toxics.downstream(toxic, attrs)
+      toxics
     end
 
     # Destroys all toxiproxy's in the collection
