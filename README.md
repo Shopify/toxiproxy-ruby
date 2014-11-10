@@ -11,6 +11,9 @@ gem install toxiproxy
 
 Make sure the Toxiproxy server is already running.
 
+For more information about Toxiproxy and the available toxics, see the [Toxiproxy
+documentation](https://github.com/shopify/toxiproxy)
+
 ## Usage
 
 For example, to simulate 1000ms latency on a database server you can use the
@@ -48,3 +51,10 @@ Toxiproxy[:cache].upstream(:latency, latency: 1000) do
   Cache.get(:omg) # will take at least a second
 end
 ```
+
+You can apply many toxics to many connections:
+
+```ruby
+Toxiproxy[/redis/].upstream(:slow_close, delay: 100).downstream(:latency, jitter: 300) do
+  # all redises are now slow at responding and closing
+end
