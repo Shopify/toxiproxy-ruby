@@ -21,7 +21,7 @@ For example, to simulate 1000ms latency on a database server you can use the
 list of all toxics):
 
 ```ruby
-Toxiproxy[:mysql_master].downstream(:latency, latency: 1000) do
+Toxiproxy[:mysql_master].downstream(:latency, latency: 1000).apply do
   Shop.first # this took at least 1s
 end
 ```
@@ -47,7 +47,7 @@ If you want to simulate that your cache server is slow at incoming network
 upstream:
 
 ```ruby
-Toxiproxy[:cache].upstream(:latency, latency: 1000) do
+Toxiproxy[:cache].upstream(:latency, latency: 1000).apply do
   Cache.get(:omg) # will take at least a second
 end
 ```
@@ -55,6 +55,6 @@ end
 You can apply many toxics to many connections:
 
 ```ruby
-Toxiproxy[/redis/].upstream(:slow_close, delay: 100).downstream(:latency, jitter: 300) do
+Toxiproxy[/redis/].upstream(:slow_close, delay: 100).downstream(:latency, jitter: 300).apply do
   # all redises are now slow at responding and closing
 end
