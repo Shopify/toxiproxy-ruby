@@ -58,3 +58,14 @@ You can apply many toxics to many connections:
 Toxiproxy[/redis/].upstream(:slow_close, delay: 100).downstream(:latency, jitter: 300).apply do
   # all redises are now slow at responding and closing
 end
+
+## Populate
+
+To populate Toxiproxy with the proxies from `config/toxiproxy.json`:
+
+```ruby
+Toxiproxy.populate("./config/toxiproxy.json")
+```
+
+It's recommended to do this early as early in boot as possible, see the
+[Toxiproxy README](https://github.com/shopify/toxiproxy#Usage)..
