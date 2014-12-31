@@ -2,8 +2,9 @@
 
 [Toxiproxy](https://github.com/shopify/toxiproxy) is a proxy to simulate network
 and system conditions. The Ruby API aims to make it simple to write tests that
-assure your application behaves appropriate under harsh conditions. Please see
-the Toxiproxy project for more details.
+ensure your application behaves appropriately under harsh conditions. Before you
+can use the Ruby library, you need to read the [Usage section of the Toxiproxy
+README](https://githubcom/shopify/toxiproxy#Usage).
 
 ```
 gem install toxiproxy
@@ -15,6 +16,8 @@ For more information about Toxiproxy and the available toxics, see the [Toxiprox
 documentation](https://github.com/shopify/toxiproxy)
 
 ## Usage
+
+The Ruby client communicates with the Toxiproxy daemon via HTTP.
 
 For example, to simulate 1000ms latency on a database server you can use the
 `latency` toxic with the `latency` argument (see the Toxiproxy project for a
