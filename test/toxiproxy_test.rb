@@ -120,6 +120,26 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_disable_on_proxy_collection
+    with_tcpserver do |port1|
+      with_tcpserver do |port2|
+        proxy1 = Toxiproxy.create(upstream: "localhost:#{port1}", name: "test_proxy1")
+        proxy2 = Toxiproxy.create(upstream: "localhost:#{port2}", name: "test_proxy2")
+
+        assert_proxy_available proxy2
+        assert_proxy_available proxy1
+
+        Toxiproxy.all.disable
+        assert_proxy_unavailable proxy1
+        assert_proxy_unavailable proxy2
+        Toxiproxy.all.enable
+
+        assert_proxy_available proxy2
+        assert_proxy_available proxy1
+      end
+    end
+  end
+
   def test_select_from_toxiproxy_collection
     with_tcpserver do |port|
       Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")
