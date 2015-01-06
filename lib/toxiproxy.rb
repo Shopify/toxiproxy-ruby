@@ -14,12 +14,13 @@ class Toxiproxy
   class ProxyExists < StandardError; end
   class InvalidToxic < StandardError; end
 
-  attr_reader :listen, :name
+  attr_reader :listen, :name, :enabled
 
   def initialize(options)
     @upstream = options[:upstream]
     @listen   = options[:listen] || "localhost:0"
     @name     = options[:name]
+    @enabled  = options[:enabled]
   end
 
   # Forwardable doesn't support delegating class methods, so we resort to
@@ -33,6 +34,14 @@ class Toxiproxy
     end
   end
 
+  # Re-enables all proxies and disables all toxics.
+  def self.reset
+    request = Net::HTTP::Get.new("/reset")
+    response = http.request(request)
+    assert_response(response)
+    self
+  end
+
   # Returns a collection of all currently active Toxiproxies.
   def self.all
     request = Net::HTTP::Get.new("/proxies")
@@ -43,7 +52,8 @@ class Toxiproxy
       self.new({
         upstream: attrs["upstream"],
         listen: attrs["listen"],
-        name: attrs["name"]
+        name: attrs["name"],
+        enabled: attrs["enabled"]
       })
     }
 
@@ -90,16 +100,36 @@ class Toxiproxy
   # longer accepting connections. This is useful to simulate critical system
   # failure, such as a data store becoming completely unavailable.
   def down(&block)
-    uptoxics = toxics(:upstream)
-    downtoxics = toxics(:downstream)
-    destroy
+    disable
     begin
       yield
     ensure
-      create
-      uptoxics.each(&:save)
-      downtoxics.each(&:save)
+      enable
     end
+  end
+
+  # Disables a Toxiproxy. This will drop all active connections and stop the proxy from listening.
+  def disable
+    request = Net::HTTP::Post.new("/proxies/#{name}")
+
+    hash = {enabled: false}
+    request.body = hash.to_json
+
+    response = http.request(request)
+    assert_response(response)
+    self
+  end
+
+  # Enables a Toxiproxy. This will cause the proxy to start listening again.
+  def enable
+    request = Net::HTTP::Post.new("/proxies/#{name}")
+
+    hash = {enabled: true}
+    request.body = hash.to_json
+
+    response = http.request(request)
+    assert_response(response)
+    self
   end
 
   # Create a Toxiproxy, proxying traffic from `@listen` (optional argument to
@@ -108,7 +138,7 @@ class Toxiproxy
   def create
     request = Net::HTTP::Post.new("/proxies")
 
-    hash = {upstream: upstream, name: name, listen: listen}
+    hash = {upstream: upstream, name: name, listen: listen, enabled: enabled}
     request.body = hash.to_json
 
     response = http.request(request)
@@ -127,8 +157,6 @@ class Toxiproxy
     assert_response(response)
     self
   end
-
-  private
 
   # Returns a collection of the current toxics for a direction.
   def toxics(direction)
@@ -151,6 +179,8 @@ class Toxiproxy
 
     toxics
   end
+
+  private
 
   def self.http
     @http ||= Net::HTTP.new(URI.host, URI.port)

@@ -24,6 +24,57 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     assert_equal "test_mysql_master", proxy.name
   end
 
+  def test_enable_and_disable_proxy
+    with_tcpserver do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
+      listen_addr = proxy.listen
+
+      Toxiproxy::Toxic.new(
+        name: 'latency',
+        proxy: proxy,
+        direction: :upstream,
+        attrs: {'latency' => 123}
+      ).enable
+
+      proxy.disable
+      assert_proxy_unavailable proxy
+      proxy.enable
+      assert_proxy_available proxy
+
+      latency = proxy.toxics(:upstream).find { |toxic| toxic.name == 'latency' }
+      assert_equal 123, latency['latency']
+      assert latency.enabled?
+
+      assert_equal listen_addr, proxy.listen
+    end
+  end
+
+  def test_reset
+    with_tcpserver do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
+      listen_addr = proxy.listen
+
+      proxy.disable
+      assert_proxy_unavailable proxy
+
+      Toxiproxy::Toxic.new(
+        name: 'latency',
+        proxy: proxy,
+        direction: :upstream,
+        attrs: {'latency' => 125}
+      ).enable
+
+      Toxiproxy.reset
+      assert_proxy_available proxy
+
+      latency = proxy.toxics(:upstream).find { |toxic| toxic.name == 'latency' }
+      assert_equal 125, latency['latency']
+      assert !latency.enabled?
+
+      assert_equal listen_addr, proxy.listen
+    end
+  end
+
   def test_take_endpoint_down
     with_tcpserver do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")

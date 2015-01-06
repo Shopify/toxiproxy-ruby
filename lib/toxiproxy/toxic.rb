@@ -11,17 +11,21 @@ class Toxiproxy
     end
 
     def enabled?
-      attrs[:enabled]
+      attrs['enabled']
     end
 
     def enable
-      attrs[:enabled] = true
+      attrs['enabled'] = true
       save
     end
 
     def disable
-      attrs[:enabled] = false
+      attrs['enabled'] = false
       save
+    end
+
+    def [](name)
+      attrs[name]
     end
 
     def []=(name, value)
