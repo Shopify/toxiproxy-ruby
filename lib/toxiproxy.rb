@@ -67,7 +67,12 @@ class Toxiproxy
 
   # Find a single proxy by name.
   def self.find_by_name(name = nil, &block)
-    proxy = self.all.find { |p| p.name == name.to_s }
+    self.all.find { |p| p.name == name.to_s }
+  end
+
+  # Calls find_by_name and raises NotFound if not found
+  def self.find_by_name!(*args)
+    proxy = find_by_name(*args)
     raise NotFound, "#{name} not found in #{self.all.map(&:name).join(', ')}" unless proxy
     proxy
   end
@@ -77,7 +82,16 @@ class Toxiproxy
   # name.
   def self.[](query)
     return grep(query) if query.is_a?(Regexp)
-    find_by_name(query)
+    find_by_name!(query)
+  end
+
+  def self.populate(path)
+    proxies = JSON.parse(File.read(path), symbolize_names: true)
+    proxies = proxies.map { |proxy| self.new(proxy) }
+
+    proxies.each do |proxy|
+      proxy.create unless find_by_name(proxy.name)
+    end
   end
 
   # Set an upstream toxic.

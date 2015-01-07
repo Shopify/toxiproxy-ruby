@@ -263,6 +263,14 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_populate_creates_proxies
+    proxies = Toxiproxy.populate("./test/fixtures/toxiproxy.json")
+
+    proxies.each do |proxy|
+      assert_proxy_available(proxy)
+    end
+  end
+
   private
 
   def assert_proxy_available(proxy)
