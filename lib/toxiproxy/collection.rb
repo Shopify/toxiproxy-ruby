@@ -35,7 +35,7 @@ class Toxiproxy
     end
 
     # Set an upstream toxic.
-    def upstream(toxic = nil, attrs = {})
+    def upstream(toxic, attrs = {})
       toxics = ToxicCollection.new(@collection)
       toxics.upstream(toxic, attrs)
       toxics
@@ -46,6 +46,16 @@ class Toxiproxy
       toxics = ToxicCollection.new(@collection)
       toxics.downstream(toxic, attrs)
       toxics
+    end
+
+    # Disables all proxies in the collection.
+    def disable
+      @collection.each(&:disable)
+    end
+
+    # Enables all proxies in the collection.
+    def enable
+      @collection.each(&:enable)
     end
 
     # Destroys all toxiproxy's in the collection

@@ -24,6 +24,57 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     assert_equal "test_mysql_master", proxy.name
   end
 
+  def test_enable_and_disable_proxy
+    with_tcpserver do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
+      listen_addr = proxy.listen
+
+      Toxiproxy::Toxic.new(
+        name: 'latency',
+        proxy: proxy,
+        direction: :upstream,
+        attrs: {'latency' => 123}
+      ).enable
+
+      proxy.disable
+      assert_proxy_unavailable proxy
+      proxy.enable
+      assert_proxy_available proxy
+
+      latency = proxy.toxics(:upstream).find { |toxic| toxic.name == 'latency' }
+      assert_equal 123, latency['latency']
+      assert latency.enabled?
+
+      assert_equal listen_addr, proxy.listen
+    end
+  end
+
+  def test_reset
+    with_tcpserver do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
+      listen_addr = proxy.listen
+
+      proxy.disable
+      assert_proxy_unavailable proxy
+
+      Toxiproxy::Toxic.new(
+        name: 'latency',
+        proxy: proxy,
+        direction: :upstream,
+        attrs: {'latency' => 125}
+      ).enable
+
+      Toxiproxy.reset
+      assert_proxy_available proxy
+
+      latency = proxy.toxics(:upstream).find { |toxic| toxic.name == 'latency' }
+      assert_equal 125, latency['latency']
+      assert !latency.enabled?
+
+      assert_equal listen_addr, proxy.listen
+    end
+  end
+
   def test_take_endpoint_down
     with_tcpserver do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
@@ -62,6 +113,26 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
           assert_proxy_unavailable proxy1
           assert_proxy_unavailable proxy2
         end
+
+        assert_proxy_available proxy2
+        assert_proxy_available proxy1
+      end
+    end
+  end
+
+  def test_disable_on_proxy_collection
+    with_tcpserver do |port1|
+      with_tcpserver do |port2|
+        proxy1 = Toxiproxy.create(upstream: "localhost:#{port1}", name: "test_proxy1")
+        proxy2 = Toxiproxy.create(upstream: "localhost:#{port2}", name: "test_proxy2")
+
+        assert_proxy_available proxy2
+        assert_proxy_available proxy1
+
+        Toxiproxy.all.disable
+        assert_proxy_unavailable proxy1
+        assert_proxy_unavailable proxy2
+        Toxiproxy.all.enable
 
         assert_proxy_available proxy2
         assert_proxy_available proxy1
