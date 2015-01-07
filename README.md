@@ -61,6 +61,7 @@ You can apply many toxics to many connections:
 Toxiproxy[/redis/].upstream(:slow_close, delay: 100).downstream(:latency, jitter: 300).apply do
   # all redises are now slow at responding and closing
 end
+```
 
 ## Populate
 
