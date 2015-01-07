@@ -63,6 +63,9 @@ Toxiproxy[/redis/].upstream(:slow_close, delay: 100).downstream(:latency, jitter
 end
 ```
 
+See the [Toxiproxy README](https://github.com/shopify/toxiproxy#Toxics) for a
+list of toxics.
+
 ## Populate
 
 To populate Toxiproxy with the proxies from `config/toxiproxy.json`:
@@ -72,4 +75,4 @@ Toxiproxy.populate("./config/toxiproxy.json")
 ```
 
 It's recommended to do this early as early in boot as possible, see the
-[Toxiproxy README](https://github.com/shopify/toxiproxy#Usage)..
+[Toxiproxy README](https://github.com/shopify/toxiproxy#Usage).
