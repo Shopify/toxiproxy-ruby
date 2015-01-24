@@ -4,7 +4,7 @@
 and system conditions. The Ruby API aims to make it simple to write tests that
 ensure your application behaves appropriately under harsh conditions. Before you
 can use the Ruby library, you need to read the [Usage section of the Toxiproxy
-README](https://githubcom/shopify/toxiproxy#Usage).
+README](https://github.com/shopify/toxiproxy#usage).
 
 ```
 gem install toxiproxy
