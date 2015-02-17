@@ -85,13 +85,12 @@ class Toxiproxy
     find_by_name!(query)
   end
 
-  def self.populate(path)
-    proxies = JSON.parse(File.read(path), symbolize_names: true)
-    proxies = proxies.map { |proxy| self.new(proxy) }
+  def self.populate(*proxies)
+    proxies = proxies.first if proxies.first.is_a?(Array)
 
-    proxies.each do |proxy|
-      proxy.create unless find_by_name(proxy.name)
-    end
+    proxies.map { |proxy|
+      self.create(proxy) unless find_by_name(proxy[:name])
+    }.compact
   end
 
   # Set an upstream toxic.

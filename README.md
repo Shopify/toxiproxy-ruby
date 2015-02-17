@@ -68,11 +68,21 @@ list of toxics.
 
 ## Populate
 
-To populate Toxiproxy with the proxies from `config/toxiproxy.json`:
+To populate Toxiproxy pass the proxy configurations to `Toxiproxy#populate`:
 
 ```ruby
-Toxiproxy.populate("./config/toxiproxy.json")
+Toxiproxy.populate([{
+  name: "mysql_master",
+  listen: "localhost:21212",
+  upstream: "localhost:3306",
+},{
+  name: "mysql_read_only",
+  listen: "localhost:21213",
+  upstream: "localhost:3306",
+})
 ```
 
+This will create the proxies passed, if they don't already exist, in Toxiproxy.
 It's recommended to do this early as early in boot as possible, see the
-[Toxiproxy README](https://github.com/shopify/toxiproxy#Usage).
+[Toxiproxy README](https://github.com/shopify/toxiproxy#Usage). If you have many
+proxies, we recommend storing the Toxiproxy configs in a configuration file.
