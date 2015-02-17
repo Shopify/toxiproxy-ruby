@@ -1,7 +1,0 @@
-[
-  {
-    "name": "toxiproxy_test_mysql",
-    "upstream": "localhost:3306",
-    "listen": "localhost:22222"
-  }
-]

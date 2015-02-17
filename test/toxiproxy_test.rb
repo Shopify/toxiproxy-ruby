@@ -263,8 +263,40 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     end
   end
 
-  def test_populate_creates_proxies
-    proxies = Toxiproxy.populate("./test/fixtures/toxiproxy.json")
+  def test_populate_creates_proxies_array
+    proxies = [{
+        name: "test_toxiproxy_populate1",
+        upstream: "localhost:3306",
+        listen: "localhost:22222",
+      },
+      {
+        name: "test_toxiproxy_populate2",
+        upstream: "localhost:3306",
+        listen: "localhost:22223",
+      },
+    ]
+
+    proxies = Toxiproxy.populate(proxies)
+
+    proxies.each do |proxy|
+      assert_proxy_available(proxy)
+    end
+  end
+
+  def test_populate_creates_proxies_args
+    proxies = [{
+        name: "test_toxiproxy_populate1",
+        upstream: "localhost:3306",
+        listen: "localhost:22222",
+      },
+      {
+        name: "test_toxiproxy_populate2",
+        upstream: "localhost:3306",
+        listen: "localhost:22223",
+      },
+    ]
+
+    proxies = Toxiproxy.populate(*proxies)
 
     proxies.each do |proxy|
       assert_proxy_available(proxy)
