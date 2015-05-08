@@ -90,7 +90,7 @@ class Toxiproxy
 
     proxies.map { |proxy|
       existing = find_by_name(proxy[:name])
-      if existing && (existing.upstream != proxy.upstream || existing.listen != proxy.listen)
+      if existing && (existing.upstream != proxy[:upstream] || existing.listen != proxy[:listen])
         existing.destroy
         existing = false
       end
