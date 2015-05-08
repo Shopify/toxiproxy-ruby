@@ -89,7 +89,12 @@ class Toxiproxy
     proxies = proxies.first if proxies.first.is_a?(Array)
 
     proxies.map { |proxy|
-      self.create(proxy) unless find_by_name(proxy[:name])
+      existing = find_by_name(proxy[:name])
+      if existing && (existing.upstream != proxy.upstream || existing.listen != proxy.listen)
+        existing.destroy
+        existing = false
+      end
+      self.create(proxy) unless existing
     }.compact
   end
 
