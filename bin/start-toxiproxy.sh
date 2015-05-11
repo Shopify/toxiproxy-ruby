@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-VERSION='0eef7f44653b07ee0e0f8de1cc64b09a'
+VERSION='21a264cc75549c3ae837b606eb6e17ea'
 
 echo "[start toxiproxy]"
 curl --silent http://shopify-vagrant.s3.amazonaws.com/toxiproxy/toxiproxy-$VERSION -o ./bin/toxiproxy
