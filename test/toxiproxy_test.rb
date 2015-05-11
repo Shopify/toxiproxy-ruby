@@ -303,6 +303,53 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_populate_creates_proxies_update_listen
+    proxies = [{
+        name: "test_toxiproxy_populate1",
+        upstream: "localhost:3306",
+        listen: "localhost:22222",
+      },
+    ]
+
+    proxies = Toxiproxy.populate(proxies)
+
+    proxies = [{
+        name: "test_toxiproxy_populate1",
+        upstream: "localhost:3306",
+        listen: "localhost:22223",
+      },
+    ]
+
+    proxies = Toxiproxy.populate(proxies)
+
+    proxies.each do |proxy|
+      assert_proxy_available(proxy)
+    end
+  end
+
+  def test_populate_creates_proxies_update_upstream
+    proxies = [{
+        name: "test_toxiproxy_populate1",
+        upstream: "localhost:3306",
+        listen: "localhost:22222",
+      },
+    ]
+
+    proxies = Toxiproxy.populate(proxies)
+
+    proxies = [{
+        name: "test_toxiproxy_populate1",
+        upstream: "localhost:3307",
+        listen: "localhost:22222",
+      },
+    ]
+
+    proxies2 = Toxiproxy.populate(proxies)
+
+    assert_equal proxies.first[:upstream], proxies2.first.upstream
+    assert_proxy_available(proxies2.first)
+  end
+
   private
 
   def assert_proxy_available(proxy)
