@@ -98,6 +98,13 @@ class Toxiproxy
     }.compact
   end
 
+  def self.running?
+    TCPSocket.new(URI.host, URI.port).close
+    true
+  rescue Errno::ECONNREFUSED, Errno::ECONNRESET
+    false
+  end
+
   # Set an upstream toxic.
   def upstream(toxic = nil, attrs = {})
     return @upstream unless toxic
