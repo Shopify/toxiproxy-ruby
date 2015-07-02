@@ -350,6 +350,10 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     assert_proxy_available(proxies2.first)
   end
 
+  def test_running_helper
+    assert_equal true, Toxiproxy.running?
+  end
+
   private
 
   def assert_proxy_available(proxy)
