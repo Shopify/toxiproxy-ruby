@@ -1,12 +1,15 @@
 require "json"
 require "uri"
 require "net/http"
+require "forwardable"
 
 require "toxiproxy/collection"
 require "toxiproxy/toxic"
 require "toxiproxy/toxic_collection"
 
 class Toxiproxy
+  extend SingleForwardable
+
   URI = ::URI.parse("http://127.0.0.1:8474")
   VALID_DIRECTIONS = [:upstream, :downstream]
 
@@ -23,16 +26,7 @@ class Toxiproxy
     @enabled  = options[:enabled]
   end
 
-  # Forwardable doesn't support delegating class methods, so we resort to
-  # `define_method` to delegate from Toxiproxy to #all, and from there to the
-  # proxy collection.
-  class << self
-    Collection::METHODS.each do |method|
-      define_method(method) do |*args, &block|
-        self.all.send(method, *args, &block)
-      end
-    end
-  end
+  def_delegator :all, *Collection::METHODS
 
   # Re-enables all proxies and disables all toxics.
   def self.reset
