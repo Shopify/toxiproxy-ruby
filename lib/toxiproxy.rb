@@ -26,7 +26,7 @@ class Toxiproxy
     @enabled  = options[:enabled]
   end
 
-  def_delegator :all, *Collection::METHODS
+  def_delegators :all, *Collection::METHODS
 
   # Re-enables all proxies and disables all toxics.
   def self.reset
