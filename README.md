@@ -79,7 +79,7 @@ Toxiproxy.populate([{
   name: "mysql_read_only",
   listen: "localhost:21213",
   upstream: "localhost:3306",
-})
+}])
 ```
 
 This will create the proxies passed, or replace the proxies if they already exist in Toxiproxy.
