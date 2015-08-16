@@ -126,11 +126,9 @@ class Toxiproxy
   # failure, such as a data store becoming completely unavailable.
   def down(&block)
     disable
-    begin
-      yield
-    ensure
-      enable
-    end
+    yield
+  ensure
+    enable
   end
 
   # Disables a Toxiproxy. This will drop all active connections and stop the proxy from listening.
