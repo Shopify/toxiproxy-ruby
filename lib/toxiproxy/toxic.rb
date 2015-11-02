@@ -1,44 +1,21 @@
 class Toxiproxy
   class Toxic
-    attr_reader :name, :proxy, :direction
-    attr_reader :attrs
+    attr_reader :name, :type, :attributes, :stream, :proxy
+    attr_accessor :attributes, :toxicity
 
-    def initialize(options)
-      @proxy     = options[:proxy]
-      @name      = options[:name]
-      @direction = options[:direction]
-      @attrs     = options[:attrs] || {}
-    end
-
-    def enabled?
-      attrs['enabled']
-    end
-
-    def enable
-      attrs['enabled'] = true
-      save
-    end
-
-    def disable
-      attrs['enabled'] = false
-      save
-    end
-
-    def [](name)
-      attrs[name]
-    end
-
-    def []=(name, value)
-      attrs[name] = value
+    def initialize(type:, name: nil, stream: 'downstream', toxicity: 1.0, proxy: nil, attributes: {})
+      @name = name || "#{type}_#{stream}"
+      @type = type
+      @attributes = attributes
+      @proxy = proxy
+      @stream = stream
+      @toxicity = toxicity
     end
 
     def save
-      unless VALID_DIRECTIONS.include?(direction.to_sym)
-        raise InvalidToxic, "Toxic direction must be one of: [#{VALID_DIRECTIONS.join(', ')}], got: #{direction}"
-      end
-      request = Net::HTTP::Post.new("/proxies/#{proxy.name}/#{direction}/toxics/#{name}")
+      request = Net::HTTP::Post.new("/proxies/#{proxy.name}/toxics")
 
-      request.body = attrs.to_json
+      request.body = as_json
 
       response = Toxiproxy.http.request(request)
       Toxiproxy.assert_response(response)
@@ -46,6 +23,22 @@ class Toxiproxy
       @attrs = JSON.parse(response.body)
 
       self
+    end
+
+    def destroy
+      request = Net::HTTP::Delete.new("/proxies/#{proxy.name}/toxics/#{name}")
+      response = Toxiproxy.http.request(request)
+      Toxiproxy.assert_response(response)
+      self
+    end
+
+    def as_json
+      {
+        name: name,
+        type: type,
+        stream: stream,
+        toxicity: toxicity,
+      }.merge(attributes).to_json
     end
   end
 end

@@ -31,26 +31,39 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     Toxiproxy.host = Toxiproxy::DEFAULT_URI
   end
 
-  def test_enable_and_disable_proxy
+  def test_enable_and_disable_proxy_with_toxic
     with_tcpserver do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
       listen_addr = proxy.listen
 
-      Toxiproxy::Toxic.new(
-        name: 'latency',
-        proxy: proxy,
-        direction: :upstream,
-        attrs: {'latency' => 123}
-      ).enable
+      Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy).save
 
       proxy.disable
       assert_proxy_unavailable proxy
       proxy.enable
       assert_proxy_available proxy
 
-      latency = proxy.toxics(:upstream).find { |toxic| toxic.name == 'latency' }
-      assert_equal 123, latency['latency']
-      assert latency.enabled?
+      latency = proxy.toxics.find { |toxic| toxic.name == 'latency_downstream' }
+
+      assert_equal 123, latency.attributes['latency']
+      assert_equal listen_addr, proxy.listen
+    end
+  end
+
+  def test_delete_toxic
+    with_tcpserver do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
+      listen_addr = proxy.listen
+
+      latency = Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy).save
+
+      assert_proxy_available proxy
+
+      latency = proxy.toxics.find { |toxic| toxic.name == 'latency_downstream' }
+      assert_equal 123, latency.attributes['latency']
+
+      latency.destroy
+      assert_predicate proxy.toxics, :empty?
 
       assert_equal listen_addr, proxy.listen
     end
@@ -64,20 +77,12 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       proxy.disable
       assert_proxy_unavailable proxy
 
-      Toxiproxy::Toxic.new(
-        name: 'latency',
-        proxy: proxy,
-        direction: :upstream,
-        attrs: {'latency' => 125}
-      ).enable
+      Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy).save
 
       Toxiproxy.reset
       assert_proxy_available proxy
 
-      latency = proxy.toxics(:upstream).find { |toxic| toxic.name == 'latency' }
-      assert_equal 125, latency['latency']
-      assert !latency.enabled?
-
+      assert_predicate proxy.toxics, :empty?
       assert_equal listen_addr, proxy.listen
     end
   end
@@ -104,7 +109,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   end
 
   def test_proxies_all_returns_proxy_collection
-    assert_instance_of Toxiproxy::Collection, Toxiproxy.all
+    assert_instance_of Toxiproxy::ProxyCollection, Toxiproxy.all
   end
 
   def test_down_on_proxy_collection_disables_entire_collection
@@ -154,7 +159,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       proxies = Toxiproxy.select { |p| p.upstream == "localhost:#{port}" }
 
       assert_equal 1, proxies.size
-      assert_instance_of Toxiproxy::Collection, proxies
+      assert_instance_of Toxiproxy::ProxyCollection, proxies
     end
   end
 
@@ -165,7 +170,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       proxies = Toxiproxy.grep(/\Atest/)
 
       assert_equal 1, proxies.size
-      assert_instance_of Toxiproxy::Collection, proxies
+      assert_instance_of Toxiproxy::ProxyCollection, proxies
     end
   end
 
@@ -176,7 +181,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       proxies = Toxiproxy[/\Atest/]
 
       assert_equal 1, proxies.size
-      assert_instance_of Toxiproxy::Collection, proxies
+      assert_instance_of Toxiproxy::ProxyCollection, proxies
     end
   end
 
@@ -216,6 +221,24 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
         assert_in_delta passed, 0.100, 0.01
       end
     end
+  end
+
+  def test_toxic_applies_a_downstream_toxic
+    with_tcpserver(receive: true) do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")
+
+      proxy.toxic(:latency, latency: 100).apply do
+        latency = proxy.toxics.find { |toxic| toxic.name == 'latency_downstream' }
+
+        assert_equal 100, latency.attributes['latency']
+        assert_equal 'downstream', latency.stream
+      end
+    end
+  end
+
+  def test_toxic_default_name_is_type_and_stream
+    toxic = Toxiproxy::Toxic.new(type: "latency", stream: "downstream")
+    assert_equal "latency_downstream", toxic.name
   end
 
   def test_apply_prolong_toxics

@@ -13,31 +13,35 @@ class Toxiproxy
     end
 
     def apply(&block)
-      @toxics.each(&:enable)
+      @toxics.each(&:save)
       yield
     ensure
-      @toxics.each(&:disable)
+      @toxics.each(&:destroy)
     end
 
-    def upstream(toxic_name, attrs = {})
+    def upstream(type, attrs = {})
       proxies.each do |proxy|
         toxics << Toxic.new(
-          name: toxic_name,
+          name: attrs.delete('name') || attrs.delete(:name),
+          type: type,
           proxy: proxy,
-          direction: :upstream,
-          attrs: attrs
+          stream: :upstream,
+          toxicity: attrs.delete('toxicitiy') || attrs.delete(:toxicity),
+          attributes: attrs
         )
       end
       self
     end
 
-    def downstream(toxic_name, attrs = {})
+    def downstream(type, attrs = {})
       proxies.each do |proxy|
         toxics << Toxic.new(
-          name: toxic_name,
+          name: attrs.delete('name') || attrs.delete(:name),
+          type: type,
           proxy: proxy,
-          direction: :downstream,
-          attrs: attrs
+          stream: :downstream,
+          toxicity: attrs.delete('toxicitiy') || attrs.delete(:toxicity),
+          attributes: attrs
         )
       end
       self
