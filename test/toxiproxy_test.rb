@@ -381,6 +381,44 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     assert_instance_of String, Toxiproxy.version
   end
 
+  def test_multiple_of_same_toxic_type
+    with_tcpserver(receive: true) do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")
+      proxy.toxic(:latency, latency: 100).toxic(:latency, latency: 100, name: "second_latency_downstream").apply do
+        before = Time.now
+
+        socket = connect_to_proxy(proxy)
+        socket.write("omg\n")
+        socket.flush
+        socket.gets
+
+        passed = Time.now - before
+
+        assert_in_delta passed, 0.200, 0.01
+      end
+    end
+  end
+
+  def test_multiple_of_same_toxic_type_with_same_name
+    with_tcpserver(receive: true) do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")
+
+      assert_raises ArgumentError do
+        proxy.toxic(:latency, latency: 100).toxic(:latency, latency: 100).apply { }
+      end
+    end
+  end
+
+  def test_invalid_direction
+    with_tcpserver(receive: true) do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
+
+      assert_raises Toxiproxy::NotFound do
+        Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy, stream: 'lolstream').save
+      end
+    end
+  end
+
   private
 
   def assert_proxy_available(proxy)

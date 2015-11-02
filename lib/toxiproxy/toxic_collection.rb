@@ -13,10 +13,18 @@ class Toxiproxy
     end
 
     def apply(&block)
-      @toxics.each(&:save)
-      yield
-    ensure
-      @toxics.each(&:destroy)
+      names = toxics.group_by { |t| [t.name, t.proxy.name] }
+      dups  = names.values.select { |toxics| toxics.length > 1 }
+      if !dups.empty?
+        raise ArgumentError, "There are two toxics with the name #{dups.first[0]} for proxy #{dups.first[1]}, please override the default name (<type>_<direction>)"
+      end
+
+      begin
+        @toxics.each(&:save)
+        yield
+      ensure
+        @toxics.each(&:destroy)
+      end
     end
 
     def upstream(type, attrs = {})
@@ -46,5 +54,7 @@ class Toxiproxy
       end
       self
     end
+    alias_method :toxic, :downstream
+    alias_method :toxicate, :downstream
   end
 end

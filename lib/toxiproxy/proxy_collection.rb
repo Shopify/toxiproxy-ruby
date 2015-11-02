@@ -47,6 +47,8 @@ class Toxiproxy
       toxics.downstream(toxic, attrs)
       toxics
     end
+    alias_method :toxicate, :downstream
+    alias_method :toxic, :downstream
 
     def disable
       @collection.each(&:disable)
