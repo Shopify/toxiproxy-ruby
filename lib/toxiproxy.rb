@@ -129,6 +129,7 @@ class Toxiproxy
     collection
   end
   alias_method :toxic, :downstream
+  alias_method :toxicate, :downstream
 
   # Simulates the endpoint is down, by closing the connection and no
   # longer accepting connections. This is useful to simulate critical system
