@@ -377,6 +377,10 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     assert_equal true, Toxiproxy.running?
   end
 
+  def test_version
+    assert_instance_of String, Toxiproxy.version
+  end
+
   private
 
   def assert_proxy_available(proxy)

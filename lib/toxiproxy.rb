@@ -42,6 +42,15 @@ class Toxiproxy
     self
   end
 
+  def self.version
+    return false unless running?
+
+    request = Net::HTTP::Get.new("/version")
+    response = http.request(request)
+    assert_response(response)
+    response.body
+  end
+
   # Returns a collection of all currently active Toxiproxies.
   def self.all
     request = Net::HTTP::Get.new("/proxies")

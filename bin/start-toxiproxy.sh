@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-VERSION='v2.0rc1'
+VERSION='v2.0.0rc1'
 TOXIPROXY_LOG_DIR=${CIRCLE_ARTIFACTS:-'/tmp'}
 
 echo "[start toxiproxy]"
