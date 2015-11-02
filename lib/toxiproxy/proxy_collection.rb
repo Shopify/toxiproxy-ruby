@@ -9,7 +9,7 @@ class Toxiproxy
   # Collection instead of an Array (see MRI). Instead, we delegate methods where
   # it doesn't matter and only allow the filtering methods that really make
   # sense on a proxy collection.
-  class Collection
+  class ProxyCollection
     extend Forwardable
 
     DELEGATED_METHODS = [:length, :size, :count, :find, :each, :map]
@@ -48,12 +48,10 @@ class Toxiproxy
       toxics
     end
 
-    # Disables all proxies in the collection.
     def disable
       @collection.each(&:disable)
     end
 
-    # Enables all proxies in the collection.
     def enable
       @collection.each(&:enable)
     end

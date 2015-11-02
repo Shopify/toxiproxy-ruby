@@ -2,9 +2,9 @@ require "json"
 require "uri"
 require "net/http"
 
-require "toxiproxy/collection"
 require "toxiproxy/toxic"
 require "toxiproxy/toxic_collection"
+require "toxiproxy/proxy_collection"
 
 class Toxiproxy
   URI = ::URI.parse("http://127.0.0.1:8474")
@@ -27,7 +27,7 @@ class Toxiproxy
   # `define_method` to delegate from Toxiproxy to #all, and from there to the
   # proxy collection.
   class << self
-    Collection::METHODS.each do |method|
+    ProxyCollection::METHODS.each do |method|
       define_method(method) do |*args, &block|
         self.all.send(method, *args, &block)
       end
@@ -57,7 +57,7 @@ class Toxiproxy
       })
     }
 
-    Collection.new(proxies)
+    ProxyCollection.new(proxies)
   end
 
   # Convenience method to create a proxy.
@@ -106,20 +106,21 @@ class Toxiproxy
   end
 
   # Set an upstream toxic.
-  def upstream(toxic = nil, attrs = {})
-    return @upstream unless toxic
+  def upstream(type = nil, attrs = {})
+    return @upstream unless type # also alias for the upstream endpoint
 
     collection = ToxicCollection.new([self])
-    collection.upstream(toxic, attrs)
+    collection.upstream(type, attrs)
     collection
   end
 
   # Set a downstream toxic.
-  def downstream(toxic, attrs = {})
+  def downstream(type, attrs = {})
     collection = ToxicCollection.new([self])
-    collection.downstream(toxic, attrs)
+    collection.downstream(type, attrs)
     collection
   end
+  alias_method :toxic, :downstream
 
   # Simulates the endpoint is down, by closing the connection and no
   # longer accepting connections. This is useful to simulate critical system
@@ -182,25 +183,21 @@ class Toxiproxy
   end
 
   # Returns a collection of the current toxics for a direction.
-  def toxics(direction)
-    unless VALID_DIRECTIONS.include?(direction.to_sym)
-      raise InvalidToxic, "Toxic direction must be one of: [#{VALID_DIRECTIONS.join(', ')}], got: #{direction}"
-    end
-
-    request = Net::HTTP::Get.new("/proxies/#{name}/#{direction}/toxics")
+  def toxics
+    request = Net::HTTP::Get.new("/proxies/#{name}/toxics")
     response = http.request(request)
     assert_response(response)
 
-    toxics = JSON.parse(response.body).map { |name, attrs|
-      Toxic.new({
-        name: name,
+    JSON.parse(response.body).map { |name, attrs|
+      Toxic.new(
+        type: attrs['type'],
+        name: attrs['name'],
         proxy: self,
-        direction: direction,
-        attrs: attrs
-      })
+        stream: attrs['stream'],
+        toxicity: attrs['toxicity'],
+        attributes: attrs,
+      )
     }
-
-    toxics
   end
 
   private
