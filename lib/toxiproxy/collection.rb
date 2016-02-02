@@ -1,5 +1,3 @@
-require "forwardable"
-
 class Toxiproxy
   # ProxyCollection represents a set of proxies. This allows to easily perform
   # actions on every proxy in the collection.
