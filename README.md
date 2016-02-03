@@ -17,7 +17,12 @@ documentation](https://github.com/shopify/toxiproxy)
 
 ## Usage
 
-The Ruby client communicates with the Toxiproxy daemon via HTTP.
+The Ruby client communicates with the Toxiproxy daemon via HTTP. By default it
+connects to `http://127.0.0.1:8474`, but you can point to any host:
+
+```ruby
+Toxiproxy.host = 'http://toxiproxy.local:5665'
+```
 
 For example, to simulate 1000ms latency on a database server you can use the
 `latency` toxic with the `latency` argument (see the Toxiproxy project for a
