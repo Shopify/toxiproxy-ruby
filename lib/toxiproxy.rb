@@ -7,7 +7,7 @@ require "toxiproxy/toxic_collection"
 require "toxiproxy/proxy_collection"
 
 class Toxiproxy
-  URI = ::URI.parse("http://127.0.0.1:8474")
+  DEFAULT_URI = 'http://127.0.0.1:8474'
   VALID_DIRECTIONS = [:upstream, :downstream]
 
   class NotFound < StandardError; end
@@ -69,6 +69,11 @@ class Toxiproxy
     ProxyCollection.new(proxies)
   end
 
+  # Sets the toxiproxy host to use.
+  def self.host=(host)
+    @uri = host.is_a?(::URI) ? host : ::URI.parse(host)
+  end
+
   # Convenience method to create a proxy.
   def self.create(options)
     self.new(options).create
@@ -108,7 +113,7 @@ class Toxiproxy
   end
 
   def self.running?
-    TCPSocket.new(URI.host, URI.port).close
+    TCPSocket.new(uri.host, uri.port).close
     true
   rescue Errno::ECONNREFUSED, Errno::ECONNRESET
     false
@@ -212,8 +217,12 @@ class Toxiproxy
 
   private
 
+  def self.uri
+    @uri ||= ::URI.parse(DEFAULT_URI)
+  end
+
   def self.http
-    @http ||= Net::HTTP.new(URI.host, URI.port)
+    @http ||= Net::HTTP.new(uri.host, uri.port)
   end
 
   def http

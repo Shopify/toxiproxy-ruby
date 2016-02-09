@@ -24,6 +24,13 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     assert_equal "test_mysql_master", proxy.name
   end
 
+  def test_proxy_not_running_with_bad_host
+    Toxiproxy.host = 'http://0.0.0.0:12345'
+    assert !Toxiproxy.running?, 'toxiproxy should not be running'
+  ensure
+    Toxiproxy.host = Toxiproxy::DEFAULT_URI
+  end
+
   def test_enable_and_disable_proxy_with_toxic
     with_tcpserver do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
