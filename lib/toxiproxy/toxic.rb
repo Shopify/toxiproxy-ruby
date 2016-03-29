@@ -20,7 +20,9 @@ class Toxiproxy
       response = Toxiproxy.http.request(request)
       Toxiproxy.assert_response(response)
 
-      @attrs = JSON.parse(response.body)
+      json = JSON.parse(response.body)
+      @attributes = json['attributes']
+      @toxicity = json['toxicity']
 
       self
     end
@@ -38,7 +40,8 @@ class Toxiproxy
         type: type,
         stream: stream,
         toxicity: toxicity,
-      }.merge(attributes).to_json
+        attributes: attributes,
+      }.to_json
     end
   end
 end

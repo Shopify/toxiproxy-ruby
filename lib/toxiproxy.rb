@@ -30,7 +30,7 @@ class Toxiproxy
 
   # Re-enables all proxies and disables all toxics.
   def self.reset
-    request = Net::HTTP::Get.new("/reset")
+    request = Net::HTTP::Post.new("/reset")
     response = http.request(request)
     assert_response(response)
     self
@@ -191,20 +191,20 @@ class Toxiproxy
     self
   end
 
-  # Returns a collection of the current toxics for a direction.
+  # Returns an array of the current toxics for a direction.
   def toxics
     request = Net::HTTP::Get.new("/proxies/#{name}/toxics")
     response = http.request(request)
     assert_response(response)
 
-    JSON.parse(response.body).map { |name, attrs|
+    JSON.parse(response.body).map { |attrs|
       Toxic.new(
         type: attrs['type'],
         name: attrs['name'],
         proxy: self,
         stream: attrs['stream'],
         toxicity: attrs['toxicity'],
-        attributes: attrs,
+        attributes: attrs['attributes'],
       )
     }
   end

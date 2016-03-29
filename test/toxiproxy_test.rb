@@ -420,7 +420,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     with_tcpserver(receive: true) do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
 
-      assert_raises Toxiproxy::NotFound do
+      assert_raises Toxiproxy::InvalidToxic do
         Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy, stream: 'lolstream').save
       end
     end
