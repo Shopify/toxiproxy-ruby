@@ -55,7 +55,7 @@ If you want to simulate that your cache server is slow at incoming network
 upstream:
 
 ```ruby
-Toxiproxy[:cache].toxic(:latency, latency: 1000).apply do
+Toxiproxy[:cache].upstream(:latency, latency: 1000).apply do
   Cache.get(:omg) # will take at least a second
 end
 ```
