@@ -63,8 +63,8 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       assert_equal 123, latency.attributes['latency']
 
       latency.destroy
-      assert_predicate proxy.toxics, :empty?
 
+      assert proxy.toxics.empty?
       assert_equal listen_addr, proxy.listen
     end
   end
@@ -82,7 +82,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       Toxiproxy.reset
       assert_proxy_available proxy
 
-      assert_predicate proxy.toxics, :empty?
+      assert proxy.toxics.empty?
       assert_equal listen_addr, proxy.listen
     end
   end

@@ -3,13 +3,14 @@ class Toxiproxy
     attr_reader :name, :type, :attributes, :stream, :proxy
     attr_accessor :attributes, :toxicity
 
-    def initialize(type:, name: nil, stream: 'downstream', toxicity: 1.0, proxy: nil, attributes: {})
-      @name = name || "#{type}_#{stream}"
-      @type = type
-      @attributes = attributes
-      @proxy = proxy
-      @stream = stream
-      @toxicity = toxicity
+    def initialize(attrs)
+      raise "Toxic type is required" unless attrs[:type]
+      @type = attrs[:type]
+      @stream = attrs[:stream] || 'downstream'
+      @name = attrs[:name] || "#{@type}_#{@stream}"
+      @proxy = attrs[:proxy]
+      @toxicity = attrs[:toxicity] || 1.0
+      @attributes = attrs[:attributes] || {}
     end
 
     def save
