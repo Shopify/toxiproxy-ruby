@@ -30,8 +30,7 @@ class Toxiproxy
 
   # Re-enables all proxies and disables all toxics.
   def self.reset
-    request = Net::HTTP::Get.new("/reset")
-    response = http.request(request)
+    response = http.get("/reset")
     assert_response(response)
     self
   end
@@ -47,8 +46,7 @@ class Toxiproxy
 
   # Returns a collection of all currently active Toxiproxies.
   def self.all
-    request = Net::HTTP::Get.new("/proxies")
-    response = http.request(request)
+    response = http.get("/proxies")
     assert_response(response)
 
     proxies = JSON.parse(response.body).map { |name, attrs|
@@ -142,25 +140,17 @@ class Toxiproxy
   end
 
   # Disables a Toxiproxy. This will drop all active connections and stop the proxy from listening.
+  DISABLE_BODY = {enabled: false}.to_json.freeze
   def disable
-    request = Net::HTTP::Post.new("/proxies/#{name}")
-
-    hash = {enabled: false}
-    request.body = hash.to_json
-
-    response = http.request(request)
+    response = http.post("/proxies/#{name}", DISABLE_BODY)
     assert_response(response)
     self
   end
 
   # Enables a Toxiproxy. This will cause the proxy to start listening again.
+  ENABLE_BODY = {enabled: true}.to_json.freeze
   def enable
-    request = Net::HTTP::Post.new("/proxies/#{name}")
-
-    hash = {enabled: true}
-    request.body = hash.to_json
-
-    response = http.request(request)
+    response = http.post("/proxies/#{name}", ENABLE_BODY)
     assert_response(response)
     self
   end
@@ -169,12 +159,10 @@ class Toxiproxy
   # the constructor) to `@upstream`. `#down` `#upstream` or `#downstream` can at any time alter the health
   # of this connection.
   def create
-    request = Net::HTTP::Post.new("/proxies")
-
     hash = {upstream: upstream, name: name, listen: listen, enabled: enabled}
-    request.body = hash.to_json
+    request_body = hash.to_json
 
-    response = http.request(request)
+    response = http.post("/proxies", request_body)
     assert_response(response)
 
     new = JSON.parse(response.body)
@@ -185,16 +173,14 @@ class Toxiproxy
 
   # Destroys a Toxiproxy.
   def destroy
-    request = Net::HTTP::Delete.new("/proxies/#{name}")
-    response = http.request(request)
+    response = http.delete("/proxies/#{name}")
     assert_response(response)
     self
   end
 
   # Returns a collection of the current toxics for a direction.
   def toxics
-    request = Net::HTTP::Get.new("/proxies/#{name}/toxics")
-    response = http.request(request)
+    response = http.get("/proxies/#{name}/toxics")
     assert_response(response)
 
     JSON.parse(response.body).map { |name, attrs|
