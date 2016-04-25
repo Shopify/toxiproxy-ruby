@@ -3,9 +3,9 @@ require "uri"
 require "net/http"
 require "forwardable"
 
-require "toxiproxy/collection"
 require "toxiproxy/toxic"
 require "toxiproxy/toxic_collection"
+require "toxiproxy/proxy_collection"
 
 class Toxiproxy
   extend SingleForwardable
@@ -26,14 +26,23 @@ class Toxiproxy
     @enabled  = options[:enabled]
   end
 
-  def_delegators :all, *Collection::METHODS
+  def_delegators :all, *ProxyCollection::METHODS
 
   # Re-enables all proxies and disables all toxics.
   def self.reset
-    request = Net::HTTP::Get.new("/reset")
+    request = Net::HTTP::Post.new("/reset")
     response = http.request(request)
     assert_response(response)
     self
+  end
+
+  def self.version
+    return false unless running?
+
+    request = Net::HTTP::Get.new("/version")
+    response = http.request(request)
+    assert_response(response)
+    response.body
   end
 
   # Returns a collection of all currently active Toxiproxies.
@@ -51,7 +60,7 @@ class Toxiproxy
       })
     }
 
-    Collection.new(proxies)
+    ProxyCollection.new(proxies)
   end
 
   # Sets the toxiproxy host to use.
@@ -105,20 +114,22 @@ class Toxiproxy
   end
 
   # Set an upstream toxic.
-  def upstream(toxic = nil, attrs = {})
-    return @upstream unless toxic
+  def upstream(type = nil, attrs = {})
+    return @upstream unless type # also alias for the upstream endpoint
 
     collection = ToxicCollection.new([self])
-    collection.upstream(toxic, attrs)
+    collection.upstream(type, attrs)
     collection
   end
 
   # Set a downstream toxic.
-  def downstream(toxic, attrs = {})
+  def downstream(type, attrs = {})
     collection = ToxicCollection.new([self])
-    collection.downstream(toxic, attrs)
+    collection.downstream(type, attrs)
     collection
   end
+  alias_method :toxic, :downstream
+  alias_method :toxicate, :downstream
 
   # Simulates the endpoint is down, by closing the connection and no
   # longer accepting connections. This is useful to simulate critical system
@@ -180,26 +191,22 @@ class Toxiproxy
     self
   end
 
-  # Returns a collection of the current toxics for a direction.
-  def toxics(direction)
-    unless VALID_DIRECTIONS.include?(direction.to_sym)
-      raise InvalidToxic, "Toxic direction must be one of: [#{VALID_DIRECTIONS.join(', ')}], got: #{direction}"
-    end
-
-    request = Net::HTTP::Get.new("/proxies/#{name}/#{direction}/toxics")
+  # Returns an array of the current toxics for a direction.
+  def toxics
+    request = Net::HTTP::Get.new("/proxies/#{name}/toxics")
     response = http.request(request)
     assert_response(response)
 
-    toxics = JSON.parse(response.body).map { |name, attrs|
-      Toxic.new({
-        name: name,
+    JSON.parse(response.body).map { |attrs|
+      Toxic.new(
+        type: attrs['type'],
+        name: attrs['name'],
         proxy: self,
-        direction: direction,
-        attrs: attrs
-      })
+        stream: attrs['stream'],
+        toxicity: attrs['toxicity'],
+        attributes: attrs['attributes'],
+      )
     }
-
-    toxics
   end
 
   private

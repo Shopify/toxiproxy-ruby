@@ -29,7 +29,7 @@ For example, to simulate 1000ms latency on a database server you can use the
 list of all toxics):
 
 ```ruby
-Toxiproxy[:mysql_master].downstream(:latency, latency: 1000).apply do
+Toxiproxy[:mysql_master].toxic(:latency, latency: 1000).apply do
   Shop.first # this took at least 1s
 end
 ```
@@ -60,7 +60,8 @@ Toxiproxy[:cache].upstream(:latency, latency: 1000).apply do
 end
 ```
 
-You can apply many toxics to many connections:
+By default the toxic is applied to the downstream connection, you can be
+explicit and chain them:
 
 ```ruby
 Toxiproxy[/redis/].upstream(:slow_close, delay: 100).downstream(:latency, jitter: 300).apply do
@@ -90,4 +91,9 @@ Toxiproxy.populate([{
 This will create the proxies passed, or replace the proxies if they already exist in Toxiproxy.
 It's recommended to do this early as early in boot as possible, see the
 [Toxiproxy README](https://github.com/shopify/toxiproxy#Usage). If you have many
-proxies, we recommend storing the Toxiproxy configs in a configuration file.
+proxies, we recommend storing the Toxiproxy configs in a configuration file and
+deserializing it into `Toxiproxy.populate`.
+
+If you're doing this in Rails, you may have to do this in `config/boot.rb` (as
+early in boot as possible) as older versions of `ActiveRecord` establish a
+database connection as soon as it's loaded.

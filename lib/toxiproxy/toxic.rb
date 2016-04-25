@@ -1,51 +1,48 @@
 class Toxiproxy
   class Toxic
-    attr_reader :name, :proxy, :direction
-    attr_reader :attrs
+    attr_reader :name, :type, :attributes, :stream, :proxy
+    attr_accessor :attributes, :toxicity
 
-    def initialize(options)
-      @proxy     = options[:proxy]
-      @name      = options[:name]
-      @direction = options[:direction]
-      @attrs     = options[:attrs] || {}
-    end
-
-    def enabled?
-      attrs['enabled']
-    end
-
-    def enable
-      attrs['enabled'] = true
-      save
-    end
-
-    def disable
-      attrs['enabled'] = false
-      save
-    end
-
-    def [](name)
-      attrs[name]
-    end
-
-    def []=(name, value)
-      attrs[name] = value
+    def initialize(attrs)
+      raise "Toxic type is required" unless attrs[:type]
+      @type = attrs[:type]
+      @stream = attrs[:stream] || 'downstream'
+      @name = attrs[:name] || "#{@type}_#{@stream}"
+      @proxy = attrs[:proxy]
+      @toxicity = attrs[:toxicity] || 1.0
+      @attributes = attrs[:attributes] || {}
     end
 
     def save
-      unless VALID_DIRECTIONS.include?(direction.to_sym)
-        raise InvalidToxic, "Toxic direction must be one of: [#{VALID_DIRECTIONS.join(', ')}], got: #{direction}"
-      end
-      request = Net::HTTP::Post.new("/proxies/#{proxy.name}/#{direction}/toxics/#{name}")
+      request = Net::HTTP::Post.new("/proxies/#{proxy.name}/toxics")
 
-      request.body = attrs.to_json
+      request.body = as_json
 
       response = Toxiproxy.http.request(request)
       Toxiproxy.assert_response(response)
 
-      @attrs = JSON.parse(response.body)
+      json = JSON.parse(response.body)
+      @attributes = json['attributes']
+      @toxicity = json['toxicity']
 
       self
+    end
+
+    def destroy
+      request = Net::HTTP::Delete.new("/proxies/#{proxy.name}/toxics/#{name}")
+      response = Toxiproxy.http.request(request)
+      Toxiproxy.assert_response(response)
+      self
+    end
+
+    def as_json
+      {
+        name: name,
+        type: type,
+        stream: stream,
+        toxicity: toxicity,
+        attributes: attributes,
+      }.to_json
     end
   end
 end

@@ -13,34 +13,48 @@ class Toxiproxy
     end
 
     def apply(&block)
-      @toxics.each(&:enable)
-      yield
-    ensure
-      @toxics.each(&:disable)
+      names = toxics.group_by { |t| [t.name, t.proxy.name] }
+      dups  = names.values.select { |toxics| toxics.length > 1 }
+      if !dups.empty?
+        raise ArgumentError, "There are two toxics with the name #{dups.first[0]} for proxy #{dups.first[1]}, please override the default name (<type>_<direction>)"
+      end
+
+      begin
+        @toxics.each(&:save)
+        yield
+      ensure
+        @toxics.each(&:destroy)
+      end
     end
 
-    def upstream(toxic_name, attrs = {})
+    def upstream(type, attrs = {})
       proxies.each do |proxy|
         toxics << Toxic.new(
-          name: toxic_name,
+          name: attrs.delete('name') || attrs.delete(:name),
+          type: type,
           proxy: proxy,
-          direction: :upstream,
-          attrs: attrs
+          stream: :upstream,
+          toxicity: attrs.delete('toxicitiy') || attrs.delete(:toxicity),
+          attributes: attrs
         )
       end
       self
     end
 
-    def downstream(toxic_name, attrs = {})
+    def downstream(type, attrs = {})
       proxies.each do |proxy|
         toxics << Toxic.new(
-          name: toxic_name,
+          name: attrs.delete('name') || attrs.delete(:name),
+          type: type,
           proxy: proxy,
-          direction: :downstream,
-          attrs: attrs
+          stream: :downstream,
+          toxicity: attrs.delete('toxicitiy') || attrs.delete(:toxicity),
+          attributes: attrs
         )
       end
       self
     end
+    alias_method :toxic, :downstream
+    alias_method :toxicate, :downstream
   end
 end
