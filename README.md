@@ -93,7 +93,7 @@ Toxiproxy.populate([{
 
 This will create the proxies passed, or replace the proxies if they already exist in Toxiproxy.
 It's recommended to do this early as early in boot as possible, see the
-[Toxiproxy README](https://github.com/shopify/toxiproxy#Usage). If you have many
+[Toxiproxy README](https://github.com/shopify/toxiproxy#usage). If you have many
 proxies, we recommend storing the Toxiproxy configs in a configuration file and
 deserializing it into `Toxiproxy.populate`.
 
