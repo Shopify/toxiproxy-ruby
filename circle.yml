@@ -5,3 +5,7 @@ dependencies:
 test:
   override:
     - bundle exec rake test
+
+machine:
+  ruby:
+    version: 2.4.0

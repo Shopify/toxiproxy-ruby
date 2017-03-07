@@ -426,7 +426,38 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_whitelists_webmock_when_allow_is_nil
+    with_webmock_enabled do
+      WebMock::Config.instance.allow = nil
+      Toxiproxy.version # This should initialize the list.
+      assert WebMock::Config.instance.allow.include?(@endpoint)
+    end
+  end
+
+  def test_whitelisting_webmock_does_not_override_other_configuration
+    with_webmock_enabled do
+      WebMock::Config.instance.allow = ['some-other-host']
+      Toxiproxy.version
+      # 'some-other-host' should not be overriden.
+      assert WebMock::Config.instance.allow.include?('some-other-host')
+      assert WebMock::Config.instance.allow.include?(@endpoint)
+
+      Toxiproxy.version
+      # Endpoint should not be duplicated.
+      assert_equal 1, WebMock::Config.instance.allow.count(@endpoint)
+    end
+  end
+
   private
+
+  def with_webmock_enabled
+    WebMock.enable!
+    WebMock.disable_net_connect!
+    @endpoint = "#{Toxiproxy.uri.host}:#{Toxiproxy.uri.port}"
+    yield
+  ensure
+    WebMock.disable!
+  end
 
   def assert_proxy_available(proxy)
     connect_to_proxy proxy
