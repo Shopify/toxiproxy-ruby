@@ -31,7 +31,7 @@ class Toxiproxy
   # Re-enables all proxies and disables all toxics.
   def self.reset
     request = Net::HTTP::Post.new("/reset")
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
     self
   end
@@ -40,7 +40,7 @@ class Toxiproxy
     return false unless running?
 
     request = Net::HTTP::Get.new("/version")
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
     response.body
   end
@@ -48,7 +48,7 @@ class Toxiproxy
   # Returns a collection of all currently active Toxiproxies.
   def self.all
     request = Net::HTTP::Get.new("/proxies")
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
 
     proxies = JSON.parse(response.body).map { |name, attrs|
@@ -148,7 +148,7 @@ class Toxiproxy
     hash = {enabled: false}
     request.body = hash.to_json
 
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
     self
   end
@@ -160,7 +160,7 @@ class Toxiproxy
     hash = {enabled: true}
     request.body = hash.to_json
 
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
     self
   end
@@ -174,7 +174,7 @@ class Toxiproxy
     hash = {upstream: upstream, name: name, listen: listen, enabled: enabled}
     request.body = hash.to_json
 
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
 
     new = JSON.parse(response.body)
@@ -186,7 +186,7 @@ class Toxiproxy
   # Destroys a Toxiproxy.
   def destroy
     request = Net::HTTP::Delete.new("/proxies/#{name}")
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
     self
   end
@@ -194,7 +194,7 @@ class Toxiproxy
   # Returns an array of the current toxics for a direction.
   def toxics
     request = Net::HTTP::Get.new("/proxies/#{name}/toxics")
-    response = http.request(request)
+    response = http_request(request)
     assert_response(response)
 
     JSON.parse(response.body).map { |attrs|
@@ -210,6 +210,23 @@ class Toxiproxy
   end
 
   private
+
+  def self.http_request(request)
+    ensure_webmock_whitelists_toxiproxy if defined? WebMock
+    http.request(request)
+  end
+
+  def http_request(request)
+    self.class.http_request(request)
+  end
+
+  def self.ensure_webmock_whitelists_toxiproxy
+    endpoint = "#{uri.host}:#{uri.port}"
+    WebMock::Config.instance.allow ||= []
+    unless WebMock::Config.instance.allow.include?(endpoint)
+      WebMock::Config.instance.allow << endpoint
+    end
+  end
 
   def self.uri
     @uri ||= ::URI.parse(DEFAULT_URI)

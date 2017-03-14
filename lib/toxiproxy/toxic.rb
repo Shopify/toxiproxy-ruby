@@ -18,7 +18,7 @@ class Toxiproxy
 
       request.body = as_json
 
-      response = Toxiproxy.http.request(request)
+      response = Toxiproxy.http_request(request)
       Toxiproxy.assert_response(response)
 
       json = JSON.parse(response.body)
@@ -30,7 +30,7 @@ class Toxiproxy
 
     def destroy
       request = Net::HTTP::Delete.new("/proxies/#{proxy.name}/toxics/#{name}")
-      response = Toxiproxy.http.request(request)
+      response = Toxiproxy.http_request(request)
       Toxiproxy.assert_response(response)
       self
     end
