@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-VERSION='v2.0.0'
+VERSION='v2.1.0'
 TOXIPROXY_LOG_DIR=${CIRCLE_ARTIFACTS:-'/tmp'}
 
 if [[ "$OSTYPE" == "linux"* ]]; then
