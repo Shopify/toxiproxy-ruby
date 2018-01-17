@@ -1,6 +1,6 @@
 class Toxiproxy
   class Toxic
-    attr_reader :name, :type, :attributes, :stream, :proxy
+    attr_reader :name, :type, :stream, :proxy
     attr_accessor :attributes, :toxicity
 
     def initialize(attrs)
