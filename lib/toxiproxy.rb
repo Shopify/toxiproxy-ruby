@@ -31,6 +31,8 @@ class Toxiproxy
   # Re-enables all proxies and disables all toxics.
   def self.reset
     request = Net::HTTP::Post.new("/reset")
+    request["Content-Type"] = "application/json"
+
     response = http_request(request)
     assert_response(response)
     self
@@ -144,6 +146,7 @@ class Toxiproxy
   # Disables a Toxiproxy. This will drop all active connections and stop the proxy from listening.
   def disable
     request = Net::HTTP::Post.new("/proxies/#{name}")
+    request["Content-Type"] = "application/json"
 
     hash = {enabled: false}
     request.body = hash.to_json
@@ -156,6 +159,7 @@ class Toxiproxy
   # Enables a Toxiproxy. This will cause the proxy to start listening again.
   def enable
     request = Net::HTTP::Post.new("/proxies/#{name}")
+    request["Content-Type"] = "application/json"
 
     hash = {enabled: true}
     request.body = hash.to_json
@@ -170,6 +174,7 @@ class Toxiproxy
   # of this connection.
   def create
     request = Net::HTTP::Post.new("/proxies")
+    request["Content-Type"] = "application/json"
 
     hash = {upstream: upstream, name: name, listen: listen, enabled: enabled}
     request.body = hash.to_json
