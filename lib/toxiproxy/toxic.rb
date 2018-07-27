@@ -15,6 +15,7 @@ class Toxiproxy
 
     def save
       request = Net::HTTP::Post.new("/proxies/#{proxy.name}/toxics")
+      request["Content-Type"] = "application/json"
 
       request.body = as_json
 
