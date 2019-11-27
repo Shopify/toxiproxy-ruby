@@ -229,7 +229,9 @@ class Toxiproxy
     endpoint = "#{uri.host}:#{uri.port}"
     WebMock::Config.instance.allow ||= []
     unless WebMock::Config.instance.allow.include?(endpoint)
-      WebMock::Config.instance.allow << endpoint
+      WebMock.disable_net_connect!(
+        allow: (WebMock::Config.instance.allow.dup << endpoint)
+      )
     end
   end
 
