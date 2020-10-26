@@ -98,14 +98,23 @@ class Toxiproxy
   def self.populate(*proxies)
     proxies = proxies.first if proxies.first.is_a?(Array)
 
-    proxies.map { |proxy|
-      existing = find_by_name(proxy[:name])
-      if existing && (existing.upstream != proxy[:upstream] || existing.listen != proxy[:listen])
-        existing.destroy
-        existing = false
-      end
-      self.create(proxy) unless existing
-    }.compact
+    request = Net::HTTP::Post.new("/populate")
+    request.body = proxies.to_json
+    request["Content-Type"] = "application/json"
+
+    response = http_request(request)
+    assert_response(response)
+
+    proxies = JSON.parse(response.body).fetch('proxies', []).map do |attrs|
+      self.new({
+        upstream: attrs["upstream"],
+        listen: attrs["listen"],
+        name: attrs["name"],
+        enabled: attrs["enabled"]
+      })
+    end
+
+    ProxyCollection.new(proxies)
   end
 
   def self.running?
