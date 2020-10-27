@@ -10,6 +10,8 @@ Gem::Specification.new do |spec|
   spec.homepage = "https://github.com/Shopify/toxiproxy"
   spec.license = "MIT"
 
+  spec.metadata['allowed_push_host'] = 'https://rubygems.org'
+
   spec.files = `git ls-files`.split("\n")
   spec.test_files = `git ls-files -- {test,spec,features}/*`.split("\n")
   spec.require_paths = ["lib"]
