@@ -1,7 +1,6 @@
 #!/bin/bash -e
 
-VERSION='v2.1.0'
-TOXIPROXY_LOG_DIR=${CIRCLE_ARTIFACTS:-'/tmp'}
+VERSION='v2.4.0'
 
 if [[ "$OSTYPE" == "linux"* ]]; then
     DOWNLOAD_TYPE="linux-amd64"
@@ -14,4 +13,4 @@ curl --silent -L https://github.com/Shopify/toxiproxy/releases/download/$VERSION
 
 echo "[start toxiproxy]"
 chmod +x ./bin/toxiproxy-server
-nohup bash -c "./bin/toxiproxy-server > ${TOXIPROXY_LOG_DIR}/toxiproxy.log 2>&1 &"
+nohup bash -c "./bin/toxiproxy-server 2>&1 | sed -e 's/^/[toxiproxy] /' &"
