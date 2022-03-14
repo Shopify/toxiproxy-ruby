@@ -6,6 +6,16 @@ jobs:
     strategy:
       matrix:
         ruby: [ '2.6', '2.7', '3.0', '3.1' ]
+    services:
+      redis:
+        image: redis:6.2
+        ports:
+          - 6379:6379
+      toxiproxy:
+        image: ghcr.io/shopify/toxiproxy:2.4.0
+        ports:
+          - 8475:8474
+          - 16379:16379
     name: Ruby ${{ matrix.ruby }}
     steps:
       - uses: actions/checkout@v2

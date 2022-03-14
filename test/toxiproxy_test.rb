@@ -1,8 +1,86 @@
 require 'test_helper'
 
 class ToxiproxyTest < MiniTest::Unit::TestCase
+  def setup
+    Toxiproxy.host = "http://127.0.0.1:8474"
+  end
+
   def teardown
     Toxiproxy.grep(/\Atest_/).each(&:destroy)
+  end
+
+  def test_redis
+    hostname = 'localhost'
+    port = 16379
+
+    begin
+      TCPSocket.open(hostname, 8475)
+    rescue SocketError => e
+      p e
+      puts e
+      skip "There is no toxiproxy hostname"
+    end
+
+    Toxiproxy.host = "http://#{hostname}:8475"
+    Toxiproxy.populate([{
+      name: "redis",
+      listen: ":#{port}",
+      upstream: "localhost:6379",
+    }])
+
+    puts "\n>>>current proxies:"
+    Toxiproxy.each do |proxy|
+      p proxy
+    end
+
+    puts "## Test connect to redis"
+
+    s = TCPSocket.open(hostname, port)
+
+    s.puts "info"
+
+    Timeout::timeout(2) do
+      puts ">>> Start reading"
+      while line = s.gets
+        puts line.chop
+      end
+    rescue => e
+      puts e
+      p e
+    end rescue ""
+    s.close
+    puts ">>> Finish reading"
+
+
+    puts "## Test when redis is down"
+
+    Toxiproxy[/redis/].down do
+      Toxiproxy.each do |proxy|
+        p proxy
+      end
+
+      s = TCPSocket.open(hostname, port)
+
+      s.puts "info"
+
+      Timeout::timeout(2) do
+        puts ">>> Start reading"
+        while line = s.gets
+          puts line.chop
+        end
+      rescue => e
+        puts e
+        p e
+      end rescue ""
+      s.close
+      puts ">>> Finish reading"
+    end
+
+    Toxiproxy.each do |proxy|
+      proxy.destroy
+    end
+  ensure
+    Toxiproxy.host = "http://127.0.0.1:8474"
   end
 
   def test_create_proxy
