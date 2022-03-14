@@ -68,6 +68,8 @@ class Toxiproxy
   # Sets the toxiproxy host to use.
   def self.host=(host)
     @uri = host.is_a?(::URI) ? host : ::URI.parse(host)
+    reset_http_client!
+    @uri
   end
 
   # Convenience method to create a proxy.
@@ -221,6 +223,15 @@ class Toxiproxy
         attributes: attrs['attributes'],
       )
     }
+  end
+
+  def self.reset_http_client!
+    if defined? @http
+      @http.finish() if @http && @http.started?
+      @http = nil
+    end
+
+    @http
   end
 
   private
