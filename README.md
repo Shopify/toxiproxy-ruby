@@ -1,5 +1,8 @@
 # toxiproxy-ruby
 
+[![Gem Version](https://badge.fury.io/rb/toxiproxy.svg)](https://badge.fury.io/rb/toxiproxy)
+[![Run tests](https://github.com/Shopify/toxiproxy-ruby/actions/workflows/ci.yml/badge.svg)](https://github.com/Shopify/toxiproxy-ruby/actions/workflows/ci.yml)
+
 `toxiproxy-ruby` `>= 1.x` is compatible with the Toxiproxy `2.x` series.
 `toxiproxy-ruby` `0.x` is compatible with the Toxiproxy `1.x` series.
 
@@ -9,8 +12,8 @@ ensure your application behaves appropriately under harsh conditions. Before you
 can use the Ruby library, you need to read the [Usage section of the Toxiproxy
 README](https://github.com/shopify/toxiproxy#usage).
 
-```
-gem install toxiproxy
+```shell
+$ gem install toxiproxy
 ```
 
 Make sure the Toxiproxy server is already running.
