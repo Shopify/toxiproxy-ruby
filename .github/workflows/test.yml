@@ -1,18 +1,26 @@
-name: Run tests
-on: [push]
+---
+
+name: Test
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
 jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby: [ '2.6', '2.7', '3.0', '3.1' ]
+        ruby: [ "2.6", "2.7", "3.0", "3.1" ]
     name: Ruby ${{ matrix.ruby }}
     steps:
       - uses: actions/checkout@v2
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby }}
-          bundler-cache: true # runs 'bundle install' and caches installed gems automatically
+          bundler-cache: true
       - name: Install and start toxiproxy
         run: ./bin/start-toxiproxy.sh
       - name: Run tests

@@ -1,0 +1,45 @@
+---
+
+name: Pre release
+
+on:
+  push:
+    tags: [ v*.*.* ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      -
+        name: GPG config
+        run: |
+          mkdir -p ~/.gnupg
+          cat << EOF >> ~/.gnupg/options
+          keyserver keys.openpgp.org
+          keyserver-options auto-key-retrieve
+          EOF
+
+      -
+        name: Verify tag signature
+        run: |
+          # NOTE: Solve the problem with Github action checkout
+          # https://github.com/actions/checkout/issues/290
+          git fetch --tags --force
+
+          version=${GITHUB_REF#refs/tags/*}
+          git show $version
+          git tag -v $version
