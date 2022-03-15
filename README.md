@@ -1,6 +1,6 @@
 # toxiproxy-ruby
 
-`toxiproxy-ruby` `1.x` (latest) is compatible with the Toxiproxy `2.x` series.
+`toxiproxy-ruby` `>= 1.x` is compatible with the Toxiproxy `2.x` series.
 `toxiproxy-ruby` `0.x` is compatible with the Toxiproxy `1.x` series.
 
 [Toxiproxy](https://github.com/shopify/toxiproxy) is a proxy to simulate network
