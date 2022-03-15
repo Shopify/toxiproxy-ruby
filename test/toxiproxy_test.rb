@@ -453,6 +453,15 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     end
   end
 
+  def test_invalidate_cache_http_on_host
+    old_value = Toxiproxy.uri
+    assert_equal 8474, Toxiproxy.http.port
+    Toxiproxy.host = "http://127.0.0.1:8475"
+    assert_equal 8475, Toxiproxy.http.port
+  ensure
+    Toxiproxy.host = old_value
+  end
+
   private
 
   def with_webmock_enabled
