@@ -18,6 +18,8 @@ $ git pull origin master
 
 Update version in [`lib/toxiproxy/version.rb`](./lib/toxiproxy/version.rb).
 Check if there is required changes in [`README.md`](./README.md).
+Add line after `## [Unreleased]` in [`CHANGELOG.md`][./CHANGELOG.md] with new version
+and update links to commits compare in the bottom of the document.
 
 ### Run Tests
 
@@ -31,6 +33,7 @@ $ rake build
 ### Create Release Commit and Tag
 
 Commit changes and create a tag. Make sure commit and tag are signed.
+Extract related content from [`CHANGELOG.md`][./CHANGELOG.md] for a tag message.
 
 ```shell
 $ export RELEASE_VERSION=2.x.y
