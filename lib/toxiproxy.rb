@@ -225,13 +225,10 @@ class Toxiproxy
     }
   end
 
+  @http = nil
   def self.reset_http_client!
-    if defined? @http
-      @http.finish() if @http && @http.started?
-      @http = nil
-    end
-
-    @http
+    @http.finish if @http&.started?
+    @http = nil
   end
 
   private
