@@ -5,6 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [2.0.2] - 2022-09-02
+### Fixed
+- Fix uninitialized instance variable warning.
+  ([#50](https://github.com/Shopify/toxiproxy-ruby/pull/50), @casperisfine)
+
 ### Added
 - Create a RELEASE.md with release instructions.
   ([#44](https://github.com/Shopify/toxiproxy-ruby/pull/44), @miry)
@@ -25,5 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([#42](https://github.com/Shopify/toxiproxy-ruby/pull/42), @miry)
 - Reset http client on host changes. ([#43](https://github.com/Shopify/toxiproxy-ruby/pull/43), @miry)
 
-[Unreleased]: https://github.com/Shopify/toxiproxy-ruby/compare/v2.0.1...HEAD
+[Unreleased]: https://github.com/Shopify/toxiproxy-ruby/compare/v2.0.2...HEAD
+[2.0.2]: https://github.com/Shopify/toxiproxy-ruby/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/Shopify/toxiproxy-ruby/compare/v2.0.0...v2.0.1

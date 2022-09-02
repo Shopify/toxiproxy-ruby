@@ -26,6 +26,7 @@ and update links to commits compare in the bottom of the document.
 Make sure all tests passed and gem could be build
 
 ```shell
+$ toxiproxy-server
 $ rake test
 $ rake build
 ```
@@ -43,16 +44,10 @@ $ git tag -s "v$RELEASE_VERSION"
 
 ## Release Tag
 
-On your local machine again, push your tag to the repository.
+On your local machine again, push your commit and tag
 
 ```shell
-$ git push origin "v$RELEASE_VERSION"
-```
-
-and only after push changes in `master`:
-
-```shell
-$ git push origin master
+$ git push origin master --follow-tags
 ```
 
 ## Verify rubygems release
