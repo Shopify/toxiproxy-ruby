@@ -1,0 +1,21 @@
+---
+
+require:
+  - rubocop-minitest
+  - rubocop-rake
+
+inherit_from: .rubocop_todo.yml
+
+inherit_gem:
+  rubocop-shopify: rubocop.yml
+
+AllCops:
+  TargetRubyVersion: 2.7
+  NewCops: enable
+
+Naming/InclusiveLanguage:
+  Enabled: false
+
+Lint/Void:
+  Exclude:
+    - lib/toxiproxy.rb

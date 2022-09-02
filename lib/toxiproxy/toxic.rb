@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Toxiproxy
   class Toxic
     attr_reader :name, :type, :stream, :proxy
@@ -5,8 +7,9 @@ class Toxiproxy
 
     def initialize(attrs)
       raise "Toxic type is required" unless attrs[:type]
+
       @type = attrs[:type]
-      @stream = attrs[:stream] || 'downstream'
+      @stream = attrs[:stream] || "downstream"
       @name = attrs[:name] || "#{@type}_#{@stream}"
       @proxy = attrs[:proxy]
       @toxicity = attrs[:toxicity] || 1.0
@@ -23,8 +26,8 @@ class Toxiproxy
       Toxiproxy.assert_response(response)
 
       json = JSON.parse(response.body)
-      @attributes = json['attributes']
-      @toxicity = json['toxicity']
+      @attributes = json["attributes"]
+      @toxicity = json["toxicity"]
 
       self
     end

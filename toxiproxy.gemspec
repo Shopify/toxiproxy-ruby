@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "lib/toxiproxy/version"
 
 Gem::Specification.new do |spec|
@@ -15,12 +17,11 @@ Gem::Specification.new do |spec|
     "source_code_uri" => "https://github.com/Shopify/toxiproxy-ruby",
     "changelog_uri" => "https://github.com/Shopify/toxiproxy-ruby/blob/master/CHANGELOG.md",
     "documentation_uri" => "https://github.com/Shopify/toxiproxy-ruby",
-    "allowed_push_host" => "https://rubygems.org"
+    "allowed_push_host" => "https://rubygems.org",
   }
 
   spec.files = Dir.glob("{lib,data}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
   spec.files += ["LICENSE", "README.md"]
-  spec.test_files = Dir.glob("{test}/**/*", File::FNM_DOTMATCH).reject { |f| File.directory?(f) }
 
   spec.require_paths = ["lib"]
 end

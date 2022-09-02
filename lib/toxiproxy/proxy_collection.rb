@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Toxiproxy
   # ProxyCollection represents a set of proxies. This allows to easily perform
   # actions on every proxy in the collection.
@@ -27,9 +29,9 @@ class Toxiproxy
     # Would simulate every Redis server being down for the duration of the
     # block.
     def down(&block)
-      @collection.inject(block) { |nested, proxy|
+      @collection.inject(block) do |nested, proxy|
         -> { proxy.down(&nested) }
-      }.call
+      end.call
     end
 
     # Set an upstream toxic.
@@ -72,9 +74,7 @@ class Toxiproxy
     # Grep allows easily selecting a subset of proxies, by returning a
     # ProxyCollection with every proxy name matching the regex passed.
     def grep(regex)
-      self.class.new(@collection.select { |proxy|
-        proxy.name =~ regex
-      })
+      self.class.new(@collection.select { |proxy| proxy.name =~ regex })
     end
   end
 end

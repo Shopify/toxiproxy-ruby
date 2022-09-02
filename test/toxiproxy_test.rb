@@ -1,4 +1,6 @@
-require 'test_helper'
+# frozen_string_literal: true
+
+require "test_helper"
 
 class ToxiproxyTest < MiniTest::Unit::TestCase
   def teardown
@@ -8,45 +10,49 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   def test_create_proxy
     proxy = Toxiproxy.create(upstream: "localhost:3306", name: "test_mysql_master")
 
-    assert_equal "localhost:3306", proxy.upstream
-    assert_equal "test_mysql_master", proxy.name
+    assert_equal("localhost:3306", proxy.upstream)
+    assert_equal("test_mysql_master", proxy.name)
   end
 
-  def test_create_and_find_proxy
-    proxy = Toxiproxy.create(upstream: "localhost:3306", name: "test_mysql_master")
-
-    assert_equal "localhost:3306", proxy.upstream
-    assert_equal "test_mysql_master", proxy.name
-
+  def test_find_proxy
+    Toxiproxy.create(upstream: "localhost:3306", name: "test_mysql_master")
     proxy = Toxiproxy[:test_mysql_master]
 
-    assert_equal "localhost:3306", proxy.upstream
-    assert_equal "test_mysql_master", proxy.name
+    assert_equal("localhost:3306", proxy.upstream)
+    assert_equal("test_mysql_master", proxy.name)
   end
 
   def test_proxy_not_running_with_bad_host
-    Toxiproxy.host = 'http://0.0.0.0:12345'
-    assert !Toxiproxy.running?, 'toxiproxy should not be running'
+    Toxiproxy.host = "http://0.0.0.0:12345"
+    refute_predicate(Toxiproxy, :running?, "toxiproxy should not be running")
   ensure
     Toxiproxy.host = Toxiproxy::DEFAULT_URI
   end
 
-  def test_enable_and_disable_proxy_with_toxic
+  def test_toggle_proxy
+    with_tcpserver do |port|
+      proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
+      Toxiproxy::Toxic.new(type: "latency", attributes: { latency: 123 }, proxy: proxy).save
+
+      proxy.disable
+      assert_proxy_unavailable(proxy)
+      proxy.enable
+      assert_proxy_available(proxy)
+    end
+  end
+
+  def test_toxic_available_after_toggle_toxic
     with_tcpserver do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
       listen_addr = proxy.listen
-
-      Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy).save
+      Toxiproxy::Toxic.new(type: "latency", attributes: { latency: 123 }, proxy: proxy).save
 
       proxy.disable
-      assert_proxy_unavailable proxy
       proxy.enable
-      assert_proxy_available proxy
+      latency = proxy.toxics.find { |toxic| toxic.name == "latency_downstream" }
 
-      latency = proxy.toxics.find { |toxic| toxic.name == 'latency_downstream' }
-
-      assert_equal 123, latency.attributes['latency']
-      assert_equal listen_addr, proxy.listen
+      assert_equal(123, latency.attributes["latency"])
+      assert_equal(listen_addr, proxy.listen)
     end
   end
 
@@ -55,17 +61,13 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
       listen_addr = proxy.listen
 
-      latency = Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy).save
+      Toxiproxy::Toxic.new(type: "latency", attributes: { latency: 123 }, proxy: proxy).save
 
-      assert_proxy_available proxy
-
-      latency = proxy.toxics.find { |toxic| toxic.name == 'latency_downstream' }
-      assert_equal 123, latency.attributes['latency']
-
+      latency = proxy.toxics.find { |toxic| toxic.name == "latency_downstream" }
       latency.destroy
 
-      assert proxy.toxics.empty?
-      assert_equal listen_addr, proxy.listen
+      assert_empty(proxy.toxics)
+      assert_equal(listen_addr, proxy.listen)
     end
   end
 
@@ -75,15 +77,13 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       listen_addr = proxy.listen
 
       proxy.disable
-      assert_proxy_unavailable proxy
 
-      Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy).save
-
+      Toxiproxy::Toxic.new(type: "latency", attributes: { latency: 123 }, proxy: proxy).save
       Toxiproxy.reset
-      assert_proxy_available proxy
 
-      assert proxy.toxics.empty?
-      assert_equal listen_addr, proxy.listen
+      assert_proxy_available(proxy)
+      assert_empty(proxy.toxics)
+      assert_equal(listen_addr, proxy.listen)
     end
   end
 
@@ -93,41 +93,38 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       listen_addr = proxy.listen
 
       proxy.down do
-        assert_proxy_unavailable proxy
+        assert_proxy_unavailable(proxy)
       end
 
-      assert_proxy_available proxy
+      assert_proxy_available(proxy)
 
-      assert_equal listen_addr, proxy.listen
+      assert_equal(listen_addr, proxy.listen)
     end
   end
 
   def test_raises_when_proxy_doesnt_exist
-    assert_raises Toxiproxy::NotFound do
+    assert_raises(Toxiproxy::NotFound) do
       Toxiproxy[:does_not_exist]
     end
   end
 
   def test_proxies_all_returns_proxy_collection
-    assert_instance_of Toxiproxy::ProxyCollection, Toxiproxy.all
+    assert_instance_of(Toxiproxy::ProxyCollection, Toxiproxy.all)
   end
 
   def test_down_on_proxy_collection_disables_entire_collection
     with_tcpserver do |port1|
       with_tcpserver do |port2|
-        proxy1 = Toxiproxy.create(upstream: "localhost:#{port1}", name: "test_proxy1")
-        proxy2 = Toxiproxy.create(upstream: "localhost:#{port2}", name: "test_proxy2")
-
-        assert_proxy_available proxy2
-        assert_proxy_available proxy1
+        proxies = [
+          Toxiproxy.create(upstream: "localhost:#{port1}", name: "test_proxy1"),
+          Toxiproxy.create(upstream: "localhost:#{port2}", name: "test_proxy2"),
+        ]
 
         Toxiproxy.all.down do
-          assert_proxy_unavailable proxy1
-          assert_proxy_unavailable proxy2
+          proxies.each { |proxy| assert_proxy_unavailable(proxy) }
         end
 
-        assert_proxy_available proxy2
-        assert_proxy_available proxy1
+        proxies.each { |proxy| assert_proxy_available(proxy) }
       end
     end
   end
@@ -135,19 +132,16 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   def test_disable_on_proxy_collection
     with_tcpserver do |port1|
       with_tcpserver do |port2|
-        proxy1 = Toxiproxy.create(upstream: "localhost:#{port1}", name: "test_proxy1")
-        proxy2 = Toxiproxy.create(upstream: "localhost:#{port2}", name: "test_proxy2")
-
-        assert_proxy_available proxy2
-        assert_proxy_available proxy1
+        proxies = [
+          Toxiproxy.create(upstream: "localhost:#{port1}", name: "test_proxy1"),
+          Toxiproxy.create(upstream: "localhost:#{port2}", name: "test_proxy2"),
+        ]
 
         Toxiproxy.all.disable
-        assert_proxy_unavailable proxy1
-        assert_proxy_unavailable proxy2
-        Toxiproxy.all.enable
+        proxies.each { |proxy| assert_proxy_unavailable(proxy) }
 
-        assert_proxy_available proxy2
-        assert_proxy_available proxy1
+        Toxiproxy.all.enable
+        proxies.each { |proxy| assert_proxy_available(proxy) }
       end
     end
   end
@@ -158,8 +152,8 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
       proxies = Toxiproxy.select { |p| p.upstream == "localhost:#{port}" }
 
-      assert_equal 1, proxies.size
-      assert_instance_of Toxiproxy::ProxyCollection, proxies
+      assert_equal(1, proxies.size)
+      assert_instance_of(Toxiproxy::ProxyCollection, proxies)
     end
   end
 
@@ -169,8 +163,8 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
       proxies = Toxiproxy.grep(/\Atest/)
 
-      assert_equal 1, proxies.size
-      assert_instance_of Toxiproxy::ProxyCollection, proxies
+      assert_equal(1, proxies.size)
+      assert_instance_of(Toxiproxy::ProxyCollection, proxies)
     end
   end
 
@@ -180,8 +174,8 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
       proxies = Toxiproxy[/\Atest/]
 
-      assert_equal 1, proxies.size
-      assert_instance_of Toxiproxy::ProxyCollection, proxies
+      assert_equal(1, proxies.size)
+      assert_instance_of(Toxiproxy::ProxyCollection, proxies)
     end
   end
 
@@ -199,7 +193,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
         passed = Time.now - before
 
-        assert_in_delta passed, 0.100, 0.01
+        assert_in_delta(passed, 0.100, 0.01)
       end
     end
   end
@@ -218,7 +212,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
         passed = Time.now - before
 
-        assert_in_delta passed, 0.100, 0.01
+        assert_in_delta(passed, 0.100, 0.01)
       end
     end
   end
@@ -228,17 +222,17 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")
 
       proxy.toxic(:latency, latency: 100).apply do
-        latency = proxy.toxics.find { |toxic| toxic.name == 'latency_downstream' }
+        latency = proxy.toxics.find { |toxic| toxic.name == "latency_downstream" }
 
-        assert_equal 100, latency.attributes['latency']
-        assert_equal 'downstream', latency.stream
+        assert_equal(100, latency.attributes["latency"])
+        assert_equal("downstream", latency.stream)
       end
     end
   end
 
   def test_toxic_default_name_is_type_and_stream
     toxic = Toxiproxy::Toxic.new(type: "latency", stream: "downstream")
-    assert_equal "latency_downstream", toxic.name
+    assert_equal("latency_downstream", toxic.name)
   end
 
   def test_apply_prolong_toxics
@@ -255,7 +249,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
         passed = Time.now - before
 
-        assert_in_delta passed, 0.200, 0.01
+        assert_in_delta(passed, 0.200, 0.01)
       end
     end
   end
@@ -276,7 +270,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
           passed = Time.now - before
 
-          assert_in_delta passed, 0.200, 0.01
+          assert_in_delta(passed, 0.200, 0.01)
 
           before = Time.now
 
@@ -287,14 +281,15 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
           passed = Time.now - before
 
-          assert_in_delta passed, 0.200, 0.01
+          assert_in_delta(passed, 0.200, 0.01)
         end
       end
     end
   end
 
   def test_populate_creates_proxies_array
-    proxies = [{
+    proxies = [
+      {
         name: "test_toxiproxy_populate1",
         upstream: "localhost:3306",
         listen: "localhost:22222",
@@ -314,7 +309,8 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   end
 
   def test_populate_creates_proxies_args
-    proxies = [{
+    proxies = [
+      {
         name: "test_toxiproxy_populate1",
         upstream: "localhost:3306",
         listen: "localhost:22222",
@@ -335,20 +331,18 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
   def test_populate_creates_proxies_update_listen
     proxies = [{
-        name: "test_toxiproxy_populate1",
-        upstream: "localhost:3306",
-        listen: "localhost:22222",
-      },
-    ]
+      name: "test_toxiproxy_populate1",
+      upstream: "localhost:3306",
+      listen: "localhost:22222",
+    }]
 
-    proxies = Toxiproxy.populate(proxies)
+    Toxiproxy.populate(proxies)
 
     proxies = [{
-        name: "test_toxiproxy_populate1",
-        upstream: "localhost:3306",
-        listen: "localhost:22223",
-      },
-    ]
+      name: "test_toxiproxy_populate1",
+      upstream: "localhost:3306",
+      listen: "localhost:22223",
+    }]
 
     proxies = Toxiproxy.populate(proxies)
 
@@ -360,25 +354,23 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   def test_populate_creates_proxies_update_upstream
     proxy_name = "test_toxiproxy_populate1"
     proxies_config = [{
-        name: proxy_name,
-        upstream: "localhost:3306",
-        listen: "localhost:22222",
-      },
-    ]
+      name: proxy_name,
+      upstream: "localhost:3306",
+      listen: "localhost:22222",
+    }]
 
     proxies = Toxiproxy.populate(proxies_config)
 
     proxies_config = [{
-        name: proxy_name,
-        upstream: "localhost:3307",
-        listen: "localhost:22222",
-      },
-    ]
+      name: proxy_name,
+      upstream: "localhost:3307",
+      listen: "localhost:22222",
+    }]
 
     proxies2 = Toxiproxy.populate(proxies_config)
 
-    refute_equal proxies.find(name: proxy_name).first.upstream,
-      proxies2.find(name: proxy_name).first.upstream
+    refute_equal(proxies.find(name: proxy_name).first.upstream,
+      proxies2.find(name: proxy_name).first.upstream)
 
     proxies2.each do |proxy|
       assert_proxy_available(proxy)
@@ -386,11 +378,11 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   end
 
   def test_running_helper
-    assert_equal true, Toxiproxy.running?
+    assert_predicate(Toxiproxy, :running?)
   end
 
   def test_version
-    assert_instance_of String, Toxiproxy.version
+    assert_instance_of(String, Toxiproxy.version)
   end
 
   def test_multiple_of_same_toxic_type
@@ -406,7 +398,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
         passed = Time.now - before
 
-        assert_in_delta passed, 0.200, 0.01
+        assert_in_delta(passed, 0.200, 0.01)
       end
     end
   end
@@ -415,8 +407,8 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     with_tcpserver(receive: true) do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")
 
-      assert_raises ArgumentError do
-        proxy.toxic(:latency, latency: 100).toxic(:latency, latency: 100).apply { }
+      assert_raises(ArgumentError) do
+        proxy.toxic(:latency, latency: 100).toxic(:latency, latency: 100).apply {}
       end
     end
   end
@@ -425,8 +417,8 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     with_tcpserver(receive: true) do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_rubby_server")
 
-      assert_raises Toxiproxy::InvalidToxic do
-        Toxiproxy::Toxic.new(type: 'latency', attributes: { latency: 123 }, proxy: proxy, stream: 'lolstream').save
+      assert_raises(Toxiproxy::InvalidToxic) do
+        Toxiproxy::Toxic.new(type: "latency", attributes: { latency: 123 }, proxy: proxy, stream: "lolstream").save
       end
     end
   end
@@ -435,29 +427,29 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     with_webmock_enabled do
       WebMock::Config.instance.allow = nil
       Toxiproxy.version # This should initialize the list.
-      assert WebMock::Config.instance.allow.include?(@endpoint)
+      assert_includes(WebMock::Config.instance.allow, @endpoint)
     end
   end
 
   def test_whitelisting_webmock_does_not_override_other_configuration
     with_webmock_enabled do
-      WebMock::Config.instance.allow = ['some-other-host']
+      WebMock::Config.instance.allow = ["some-other-host"]
       Toxiproxy.version
       # 'some-other-host' should not be overriden.
-      assert WebMock::Config.instance.allow.include?('some-other-host')
-      assert WebMock::Config.instance.allow.include?(@endpoint)
+      assert_includes(WebMock::Config.instance.allow, "some-other-host")
+      assert_includes(WebMock::Config.instance.allow, @endpoint)
 
       Toxiproxy.version
       # Endpoint should not be duplicated.
-      assert_equal 1, WebMock::Config.instance.allow.count(@endpoint)
+      assert_equal(1, WebMock::Config.instance.allow.count(@endpoint))
     end
   end
 
   def test_invalidate_cache_http_on_host
     old_value = Toxiproxy.uri
-    assert_equal 8474, Toxiproxy.http.port
+    assert_equal(8474, Toxiproxy.http.port)
     Toxiproxy.host = "http://127.0.0.1:8475"
-    assert_equal 8475, Toxiproxy.http.port
+    assert_equal(8475, Toxiproxy.http.port)
   ensure
     Toxiproxy.host = old_value
   end
@@ -474,17 +466,17 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
   end
 
   def assert_proxy_available(proxy)
-    connect_to_proxy proxy
+    connect_to_proxy(proxy)
   end
 
   def assert_proxy_unavailable(proxy)
-    assert_raises Errno::ECONNREFUSED do
-      connect_to_proxy proxy
+    assert_raises(Errno::ECONNREFUSED) do
+      connect_to_proxy(proxy)
     end
   end
 
   def connect_to_proxy(proxy)
-    TCPSocket.new(*proxy.listen.split(":".freeze))
+    TCPSocket.new(*proxy.listen.split(":"))
   end
 
   def with_tcpserver(receive = false, &block)
@@ -492,7 +484,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
     cond = mon.new_cond
     port = nil
 
-    thread = Thread.new {
+    thread = Thread.new do
       server = TCPServer.new("127.0.0.1", 0)
       port = server.addr[1]
       mon.synchronize { cond.signal }
@@ -508,7 +500,7 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
         client.close
       end
       server.close
-    }
+    end
 
     mon.synchronize { cond.wait }
 

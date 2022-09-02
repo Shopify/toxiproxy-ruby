@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Toxiproxy
   class ToxicCollection
     extend Forwardable
@@ -15,8 +17,10 @@ class Toxiproxy
     def apply(&block)
       names = toxics.group_by { |t| [t.name, t.proxy.name] }
       dups  = names.values.select { |toxics| toxics.length > 1 }
-      if !dups.empty?
-        raise ArgumentError, "There are two toxics with the name #{dups.first[0]} for proxy #{dups.first[1]}, please override the default name (<type>_<direction>)"
+      unless dups.empty?
+        raise ArgumentError,
+          "There are two toxics with the name #{dups.first[0]} for proxy #{dups.first[1]}, " \
+            "please override the default name (<type>_<direction>)"
       end
 
       begin
@@ -30,11 +34,11 @@ class Toxiproxy
     def upstream(type, attrs = {})
       proxies.each do |proxy|
         toxics << Toxic.new(
-          name: attrs.delete('name') || attrs.delete(:name),
+          name: attrs.delete("name") || attrs.delete(:name),
           type: type,
           proxy: proxy,
           stream: :upstream,
-          toxicity: attrs.delete('toxicitiy') || attrs.delete(:toxicity),
+          toxicity: attrs.delete("toxicitiy") || attrs.delete(:toxicity),
           attributes: attrs
         )
       end
@@ -44,11 +48,11 @@ class Toxiproxy
     def downstream(type, attrs = {})
       proxies.each do |proxy|
         toxics << Toxic.new(
-          name: attrs.delete('name') || attrs.delete(:name),
+          name: attrs.delete("name") || attrs.delete(:name),
           type: type,
           proxy: proxy,
           stream: :downstream,
-          toxicity: attrs.delete('toxicitiy') || attrs.delete(:toxicity),
+          toxicity: attrs.delete("toxicitiy") || attrs.delete(:toxicity),
           attributes: attrs
         )
       end
