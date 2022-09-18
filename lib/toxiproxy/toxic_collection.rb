@@ -39,7 +39,7 @@ class Toxiproxy
           proxy: proxy,
           stream: :upstream,
           toxicity: attrs.delete("toxicitiy") || attrs.delete(:toxicity),
-          attributes: attrs
+          attributes: attrs,
         )
       end
       self
@@ -53,7 +53,7 @@ class Toxiproxy
           proxy: proxy,
           stream: :downstream,
           toxicity: attrs.delete("toxicitiy") || attrs.delete(:toxicity),
-          attributes: attrs
+          attributes: attrs,
         )
       end
       self
