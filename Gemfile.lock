@@ -1,0 +1,64 @@
+PATH
+  remote: .
+  specs:
+    toxiproxy (2.0.2)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    addressable (2.8.1)
+      public_suffix (>= 2.0.2, < 6.0)
+    ast (2.4.2)
+    crack (0.4.5)
+      rexml
+    hashdiff (1.0.1)
+    json (2.6.2)
+    minitest (5.16.3)
+    parallel (1.22.1)
+    parser (3.1.2.1)
+      ast (~> 2.4.1)
+    public_suffix (5.0.0)
+    rainbow (3.1.1)
+    rake (13.0.6)
+    regexp_parser (2.5.0)
+    rexml (3.2.5)
+    rubocop (1.36.0)
+      json (~> 2.3)
+      parallel (~> 1.10)
+      parser (>= 3.1.2.1)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 1.8, < 3.0)
+      rexml (>= 3.2.5, < 4.0)
+      rubocop-ast (>= 1.20.1, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 1.4.0, < 3.0)
+    rubocop-ast (1.21.0)
+      parser (>= 3.1.1.0)
+    rubocop-minitest (0.22.1)
+      rubocop (>= 0.90, < 2.0)
+    rubocop-rake (0.6.0)
+      rubocop (~> 1.0)
+    rubocop-shopify (2.10.1)
+      rubocop (~> 1.35)
+    ruby-progressbar (1.11.0)
+    unicode-display_width (2.3.0)
+    webmock (3.18.1)
+      addressable (>= 2.8.0)
+      crack (>= 0.3.2)
+      hashdiff (>= 0.4.0, < 2.0.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  minitest
+  rake
+  rubocop
+  rubocop-minitest
+  rubocop-rake
+  rubocop-shopify
+  toxiproxy!
+  webmock
+
+BUNDLED WITH
+   2.3.22
