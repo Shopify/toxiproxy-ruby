@@ -13,9 +13,12 @@ AllCops:
   TargetRubyVersion: 2.7
   NewCops: enable
 
-Naming/InclusiveLanguage:
-  Enabled: false
-
 Lint/Void:
   Exclude:
     - lib/toxiproxy.rb
+
+Minitest/EmptyLineBeforeAssertionMethods:
+  Enabled: false
+
+Naming/InclusiveLanguage:
+  Enabled: false
