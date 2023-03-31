@@ -369,8 +369,10 @@ class ToxiproxyTest < MiniTest::Unit::TestCase
 
     proxies2 = Toxiproxy.populate(proxies_config)
 
-    refute_equal(proxies.find(name: proxy_name).first.upstream,
-      proxies2.find(name: proxy_name).first.upstream)
+    refute_equal(
+      proxies.find(name: proxy_name).first.upstream,
+      proxies2.find(name: proxy_name).first.upstream,
+    )
 
     proxies2.each do |proxy|
       assert_proxy_available(proxy)
