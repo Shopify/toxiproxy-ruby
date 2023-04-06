@@ -10,8 +10,8 @@ Ensure your local workstation is configured to be able to
 ### Checkout latest code
 
 ```shell
-$ git checkout master
-$ git pull origin master
+$ git checkout main
+$ git pull origin main
 ```
 
 ### Bump version
@@ -47,7 +47,7 @@ $ git tag -s "v$RELEASE_VERSION"
 On your local machine again, push your commit and tag
 
 ```shell
-$ git push origin master --follow-tags
+$ git push origin main --follow-tags
 ```
 
 ## Verify rubygems release

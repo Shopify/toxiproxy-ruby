@@ -15,7 +15,7 @@ Gem::Specification.new do |spec|
   spec.metadata = {
     "homepage_uri" => "https://github.com/Shopify/toxiproxy",
     "source_code_uri" => "https://github.com/Shopify/toxiproxy-ruby",
-    "changelog_uri" => "https://github.com/Shopify/toxiproxy-ruby/blob/master/CHANGELOG.md",
+    "changelog_uri" => "https://github.com/Shopify/toxiproxy-ruby/blob/main/CHANGELOG.md",
     "documentation_uri" => "https://github.com/Shopify/toxiproxy-ruby",
     "allowed_push_host" => "https://rubygems.org",
   }
