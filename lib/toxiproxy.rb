@@ -140,6 +140,8 @@ class Toxiproxy
 
     def http
       @http ||= Net::HTTP.new(uri.host, uri.port)
+      @http.read_timeout = 120
+      @http
     end
 
     def assert_response(response)
