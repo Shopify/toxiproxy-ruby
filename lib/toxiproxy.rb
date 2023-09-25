@@ -22,6 +22,7 @@ class Toxiproxy
   attr_reader :listen, :name, :enabled
 
   @http = nil
+  @timeout = 5 # Should be more than plenty
 
   def initialize(options)
     @upstream = options[:upstream]
@@ -33,6 +34,8 @@ class Toxiproxy
   def_delegators :all, *ProxyCollection::METHODS
 
   class << self
+    attr_accessor :timeout
+
     # Re-enables all proxies and disables all toxics.
     def reset
       request = Net::HTTP::Post.new("/reset")
@@ -139,7 +142,13 @@ class Toxiproxy
     end
 
     def http
-      @http ||= Net::HTTP.new(uri.host, uri.port)
+      @http ||= begin
+        connection = Net::HTTP.new(uri.host, uri.port)
+        connection.write_timeout = @timeout
+        connection.read_timeout = @timeout
+        connection.open_timeout = @timeout
+        connection
+      end
     end
 
     def assert_response(response)
