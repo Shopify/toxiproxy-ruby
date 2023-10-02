@@ -2,7 +2,7 @@
 
 require "test_helper"
 
-class ToxiproxyTest < MiniTest::Unit::TestCase
+class ToxiproxyTest < Minitest::Test
   def teardown
     Toxiproxy.grep(/\Atest_/).each(&:destroy)
   end
