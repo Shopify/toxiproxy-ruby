@@ -11,6 +11,7 @@ Gem::Specification.new do |spec|
   spec.description = "A Ruby library for controlling Toxiproxy. Can be used in resiliency testing."
   spec.homepage    = "https://github.com/Shopify/toxiproxy"
   spec.license     = "MIT"
+  spec.required_ruby_version = ">= 3.0.0"
 
   spec.metadata = {
     "homepage_uri" => "https://github.com/Shopify/toxiproxy",
