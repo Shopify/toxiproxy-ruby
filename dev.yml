@@ -1,0 +1,23 @@
+---
+
+name: toxiproxy-ruby
+
+type: ruby
+
+up:
+  - ruby
+  - bundler
+
+commands:
+  server:
+    aliases: [s]
+    desc: Run Toxiproxy server
+    run: toxiproxy-server
+
+  test:
+    desc: Run tests
+    run: rake test
+
+  build:
+    desc: Build gem
+    run: rake build
