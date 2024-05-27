@@ -9,11 +9,12 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
   - package-ecosystem: bundler
     directory: /
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 100
     insecure-external-code-execution: allow
     registries: "*"
+    rebase-strategy: auto
     schedule:
-      interval: monthly
+      interval: weekly
