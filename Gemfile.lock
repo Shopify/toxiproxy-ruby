@@ -16,7 +16,7 @@ GEM
     hashdiff (1.1.1)
     json (2.7.5)
     language_server-protocol (3.17.0.3)
-    minitest (5.25.1)
+    minitest (5.25.2)
     parallel (1.26.3)
     parser (3.3.5.1)
       ast (~> 2.4.1)
