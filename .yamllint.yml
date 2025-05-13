@@ -11,6 +11,7 @@ ignore: |
 rules:
   comments:
     require-starting-space: true
+    min-spaces-from-content: 1
   comments-indentation: enable
   document-start:
     present: true
