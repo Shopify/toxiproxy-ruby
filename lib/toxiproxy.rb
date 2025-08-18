@@ -212,7 +212,7 @@ class Toxiproxy
 
   # Disables a Toxiproxy. This will drop all active connections and stop the proxy from listening.
   def disable
-    request = Net::HTTP::Post.new("/proxies/#{name}")
+    request = Net::HTTP::Patch.new("/proxies/#{name}")
     request["Content-Type"] = "application/json"
 
     hash = { enabled: false }
@@ -225,7 +225,7 @@ class Toxiproxy
 
   # Enables a Toxiproxy. This will cause the proxy to start listening again.
   def enable
-    request = Net::HTTP::Post.new("/proxies/#{name}")
+    request = Net::HTTP::Patch.new("/proxies/#{name}")
     request["Content-Type"] = "application/json"
 
     hash = { enabled: true }
