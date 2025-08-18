@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-VERSION='v2.4.0'
+VERSION='v2.12.0'
 
 if [[ "$OSTYPE" == "linux"* ]]; then
     DOWNLOAD_TYPE="linux-amd64"
