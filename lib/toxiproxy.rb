@@ -212,7 +212,11 @@ class Toxiproxy
 
   # Disables a Toxiproxy. This will drop all active connections and stop the proxy from listening.
   def disable
-    request = Net::HTTP::Patch.new("/proxies/#{name}")
+    request = if server_supports_patch?
+      Net::HTTP::Patch.new("/proxies/#{name}")
+    else
+      Net::HTTP::Post.new("/proxies/#{name}")
+    end
     request["Content-Type"] = "application/json"
 
     hash = { enabled: false }
@@ -225,7 +229,11 @@ class Toxiproxy
 
   # Enables a Toxiproxy. This will cause the proxy to start listening again.
   def enable
-    request = Net::HTTP::Patch.new("/proxies/#{name}")
+    request = if server_supports_patch?
+      Net::HTTP::Patch.new("/proxies/#{name}")
+    else
+      Net::HTTP::Post.new("/proxies/#{name}")
+    end
     request["Content-Type"] = "application/json"
 
     hash = { enabled: true }
@@ -282,6 +290,35 @@ class Toxiproxy
   end
 
   private
+
+  def version_string
+    return @version_string if @version_string
+
+    version_response = self.class.version
+    return false if version_response == false
+
+    @version_string = begin
+      JSON.parse(version_response)["version"]
+    rescue JSON::ParserError
+      false
+    end
+  end
+
+  # Check if the toxiproxy server version supports PATCH for enable/disable
+  def server_supports_patch?
+    version_str = version_string
+    return false if version_str == false
+
+    begin
+      # Use Gem::Version for proper version comparison
+      current_version = Gem::Version.new(version_str.sub(/^v/, "")) # Remove 'v' prefix if present
+      required_version = Gem::Version.new("2.6.0")
+      current_version >= required_version
+    rescue ArgumentError
+      # Invalid version format
+      false
+    end
+  end
 
   def http_request(request)
     self.class.http_request(request)
