@@ -387,6 +387,144 @@ class ToxiproxyTest < Minitest::Test
     assert_instance_of(String, Toxiproxy.version)
   end
 
+  def test_server_supports_patch_with_version_2_6_0
+    Toxiproxy.stub(:version, '{"version": "2.6.0"}') do
+      assert(Toxiproxy.new(upstream: "localhost:3306", name: "test").send(:server_supports_patch?))
+    end
+  end
+
+  def test_server_supports_patch_with_version_2_7_0
+    Toxiproxy.stub(:version, '{"version": "2.7.0"}') do
+      assert(Toxiproxy.new(upstream: "localhost:3306", name: "test").send(:server_supports_patch?))
+    end
+  end
+
+  def test_server_supports_patch_with_version_3_0_0
+    Toxiproxy.stub(:version, '{"version": "3.0.0"}') do
+      assert(Toxiproxy.new(upstream: "localhost:3306", name: "test").send(:server_supports_patch?))
+    end
+  end
+
+  def test_does_not_support_patch_for_enable_disable_with_version_below_2_6_0
+    Toxiproxy.stub(:version, '{"version": "2.5.0"}') do
+      refute(Toxiproxy.new(upstream: "localhost:3306", name: "test").send(:server_supports_patch?))
+    end
+  end
+
+  def test_does_not_support_patch_for_enable_disable_when_not_running
+    Toxiproxy.stub(:running?, false) do
+      refute(Toxiproxy.new(upstream: "localhost:3306", name: "test").send(:server_supports_patch?))
+    end
+  end
+
+  def test_does_not_support_patch_for_enable_disable_with_invalid_version
+    Toxiproxy.stub(:version, "invalid") do
+      refute(Toxiproxy.new(upstream: "localhost:3306", name: "test").send(:server_supports_patch?))
+    end
+  end
+
+  def test_disable_uses_patch_when_version_supports_it
+    proxy = Toxiproxy.new(upstream: "localhost:3306", name: "test_proxy_patch")
+
+    # Mock version to return JSON with 2.6.0 (supports PATCH)
+    Toxiproxy.stub(:version, '{"version": "2.6.0"}') do
+      # Mock the http_request method to capture the request type
+      request_captured = nil
+      proxy.stub(:http_request, ->(req) {
+        request_captured = req
+        double = Object.new
+        double.define_singleton_method(:value) do
+          nil
+        end
+        double
+      }) do
+        proxy.disable
+      end
+
+      # Verify PATCH was used
+      assert_instance_of(Net::HTTP::Patch, request_captured)
+      assert_equal("/proxies/test_proxy_patch", request_captured.path)
+      assert_equal({ enabled: false }.to_json, request_captured.body)
+    end
+  end
+
+  def test_enable_uses_patch_when_version_supports_it
+    proxy = Toxiproxy.new(upstream: "localhost:3306", name: "test_proxy_patch_enable")
+
+    # Mock version to return JSON with 2.6.0 (supports PATCH)
+    Toxiproxy.stub(:version, '{"version": "2.6.0"}') do
+      # Mock the http_request method to capture the request type
+      request_captured = nil
+      proxy.stub(:http_request, ->(req) {
+        request_captured = req
+        double = Object.new
+        double.define_singleton_method(:value) do
+          nil
+        end
+        double
+      }) do
+        proxy.enable
+      end
+
+      # Verify PATCH was used
+      assert_instance_of(Net::HTTP::Patch, request_captured)
+      assert_equal("/proxies/test_proxy_patch_enable", request_captured.path)
+      assert_equal({ enabled: true }.to_json, request_captured.body)
+    end
+  end
+
+  def test_disable_uses_post_when_version_does_not_support_patch
+    proxy = Toxiproxy.new(upstream: "localhost:3306", name: "test_proxy_post")
+
+    # Mock version to return JSON with 2.5.0 (does not support PATCH)
+
+    Toxiproxy.stub(:version, '{"version": "2.5.0"}') do
+      # Mock the http_request method to capture the request type
+      request_captured = nil
+      proxy.stub(:http_request, ->(req) {
+        request_captured = req
+        double = Object.new
+        double.define_singleton_method(:value) do
+          nil
+        end
+        double
+      }) do
+        proxy.disable
+      end
+
+      # Verify POST was used
+      assert_instance_of(Net::HTTP::Post, request_captured)
+      assert_equal("/proxies/test_proxy_post", request_captured.path)
+      assert_equal({ enabled: false }.to_json, request_captured.body)
+    end
+  end
+
+  def test_enable_uses_post_when_version_does_not_support_patch
+    proxy = Toxiproxy.new(upstream: "localhost:3306", name: "test_proxy_post_enable")
+
+    # Mock version to return JSON with 2.5.0 (does not support PATCH)
+
+    Toxiproxy.stub(:version, '{"version": "2.5.0"}') do
+      # Mock the http_request method to capture the request type
+      request_captured = nil
+      proxy.stub(:http_request, ->(req) {
+        request_captured = req
+        double = Object.new
+        double.define_singleton_method(:value) do
+          nil
+        end
+        double
+      }) do
+        proxy.enable
+      end
+
+      # Verify POST was used
+      assert_instance_of(Net::HTTP::Post, request_captured)
+      assert_equal("/proxies/test_proxy_post_enable", request_captured.path)
+      assert_equal({ enabled: true }.to_json, request_captured.body)
+    end
+  end
+
   def test_multiple_of_same_toxic_type
     with_tcpserver(receive: true) do |port|
       proxy = Toxiproxy.create(upstream: "localhost:#{port}", name: "test_proxy")

@@ -3,8 +3,8 @@
 [![Gem Version](https://badge.fury.io/rb/toxiproxy.svg)](https://badge.fury.io/rb/toxiproxy)
 [![Test](https://github.com/Shopify/toxiproxy-ruby/actions/workflows/test.yml/badge.svg)](https://github.com/Shopify/toxiproxy-ruby/actions/workflows/test.yml)
 
-`toxiproxy-ruby` `>= 1.x` is compatible with the Toxiproxy `2.x` series.
-`toxiproxy-ruby` `0.x` is compatible with the Toxiproxy `1.x` series.
+- `toxiproxy-ruby` `>= 1.x` is compatible with the Toxiproxy `2.x` series.
+- `toxiproxy-ruby` `0.x` is compatible with the Toxiproxy `1.x` series.
 
 [Toxiproxy](https://github.com/shopify/toxiproxy) is a proxy to simulate network
 and system conditions. The Ruby API aims to make it simple to write tests that

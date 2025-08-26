@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Use `PATCH` not `POST` when enabling or disabling proxies when Toxiproxy supports `PATCH`.
+  ([#186](https://github.com/Shopify/toxiproxy-ruby/pull/186), @brendo)
+- Set HTTP timeout of 5s when communicating with Toxiproxy server.
+  ([#85](https://github.com/Shopify/toxiproxy-ruby/pull/85), @casperisfine)
+
 ## [2.0.2] - 2022-09-02
 ### Fixed
 - Fix uninitialized instance variable warning.
