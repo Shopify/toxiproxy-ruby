@@ -14,7 +14,7 @@ GEM
       bigdecimal
       rexml
     hashdiff (1.2.1)
-    json (2.19.1)
+    json (2.19.2)
     json-schema (6.2.0)
       addressable (~> 2.8)
       bigdecimal (>= 3.1, < 5)
